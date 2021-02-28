@@ -1,0 +1,9 @@
+source/bochsout.txt
+source/*.s
+source/*.o
+source/*.out
+source/build
+source/bootsect
+source/system
+source/user
+source/zeos.bin

@@ -57,10 +57,8 @@ inline void set_seg_regs(Word data_sel, Word stack_sel, DWord esp)
 /*
  *   Main entry point to ZEOS Operating System
  */
-int __attribute__((__section__(".text.main")))
-  main(void)
-{
-
+int __attribute__((__section__(".text.main"))) main(void) {
+  
   set_eflags();
 
   /* Define the kernel segment registers  and a stack to execute the 'main' code */
@@ -72,20 +70,22 @@ int __attribute__((__section__(".text.main")))
 
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
-  printk("Kernel Loaded!    ");
+  printk("Kernel Loaded!\n");
 
-
+  printk("Initialize hardware data\n");
   /* Initialize hardware data */
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */
   setTSS(); /* Definicio de la TSS */
 
+  printk("Initialize memory\n");
   /* Initialize Memory */
   init_mm();
 
   /* Initialize an address space to be used for the monoprocess version of ZeOS */
   monoprocess_init_addr_space(); /* TO BE DELETED WHEN THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS IS ADDED */
 
+  printk("Initialize scheduling\n");
   /* Initialize Scheduling */
   init_sched();
 
@@ -98,8 +98,8 @@ int __attribute__((__section__(".text.main")))
   copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
 
 
-  printk("Entering user mode...");
-
+  printk("Entering user mode...\n");
+  
   enable_int();
   /*
    * We return from a 'theorical' call to a 'call gate' to reduce our privileges
