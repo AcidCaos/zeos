@@ -1,5 +1,5 @@
 /*
- * interrupt.c -
+ * interrupt.c - Definició de les diferents rutines de tractament d'exepcions
  */
 #include <types.h>
 #include <interrupt.h>
@@ -74,16 +74,71 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 }
 
 
+
+// # include del header de entry.S
+void clock_handler();
+void keyboard_handler();
+void system_call_handler();
+
+
+
 void setIdt()
 {
   /* Program interrups/exception service routines */
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
   
+
+  // EXCEPTION HANDLERS (zeos_interrupt.h)
   set_handlers();
 
+
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  
+  setInterruptHandler(32, clock_handler, 0); // clock_handler
+  setInterruptHandler(33, keyboard_handler, 0); // keyboard handler
+
+  setTrapHandler(0x80, system_call_handler, 3); // syscall_handler.   user privilege level = 3
+
+
 
   set_idt_reg(&idtR);
 }
+
+
+ /* HARDWARE INTERRUPT ROUTINES */
+
+void clock_routine() {
+  // printk("[H.INT] Clock service routine\n");
+  return;
+}
+
+void keyboard_routine() {
+  //printk("[H.INT] Keyboard service routine\n");
+  unsigned char p = inb(0x60); // Keyboard data register port = 0x60
+  char mkbrk = (p >> 7) & 0x01;
+  char scancode = p & 0x7F;
+  if (mkbrk == 0x00){ //Make
+    char pr = char_map[scancode];
+    if (pr == '\0') pr = 'C';
+    printc_xy(0, 0, pr);
+    char str[] = "Pressed:  \n";
+    str[9] = pr;
+    printk(&str);
+  }
+  else if (mkbrk == 0x01){ //Break
+    
+  } else {
+    printk("keyboard_routine(): This should never happen!");
+  }
+  return;
+}
+
+
+
+
+
+
+
+
 

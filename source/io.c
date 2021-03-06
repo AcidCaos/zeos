@@ -3,7 +3,6 @@
  */
 
 #include <io.h>
-
 #include <types.h>
 
 /**************/
@@ -14,7 +13,7 @@
 #define NUM_ROWS    25
 
 Byte x, y = 19;
-// Word *screen = (Word *) 0xb8000;
+Word *screen = (Word *) 0xb8000;
 
 //*****************************//
 // auxiliar (private) methods  //
@@ -23,21 +22,6 @@ Byte x, y = 19;
 void print_to_bochs (char c) {
   // Magic BOCHS debug: writes 'c' to port 0xe9
   __asm__ __volatile__ ( "movb %0, %%al; outb $0xe9" ::"a"(c)); 
-}
-
-void scroll () {
-  Word *screen = (Word *)0xb8000;
-  // Move all up
-  for (int row = 1; row < NUM_ROWS; row++) {
-    for (int col = 0; col < NUM_COLUMNS; col++) {
-      screen[(row-1) * NUM_COLUMNS + col] = screen[row * NUM_COLUMNS + col];
-    }
-  }
-  // Clean last row
-  Word ch = (Word) (' ' & 0x00FF);
-  for (int col = 0; col < NUM_COLUMNS; col++) {
-    screen[(NUM_ROWS-1) * NUM_COLUMNS + col] = ch;
-  }
 }
 
 void printc_attributes (char c, int fg_color, int bg_color, int blink) {
@@ -68,11 +52,11 @@ void printc_attributes (char c, int fg_color, int bg_color, int blink) {
     Word attr_byte = (fg_attr | bg_attr | blink_attr) << 8;
     Word ch = (Word) (c & 0x00FF) | attr_byte;
 
-    Word *screen = (Word *)0xb8000;
     screen[(y * NUM_COLUMNS + x)] = ch;
     if (++x >= NUM_COLUMNS) {
       x = 0;
-      scroll();
+      if (y + 1 >= NUM_ROWS) scroll();
+      else y = y + 1;
     }
   }
 }
@@ -88,15 +72,40 @@ Byte inb (unsigned short port) {
   return v;
 }
 
+void clear () {
+  Word ch = (Word) (' ' & 0x00FF);
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLUMNS; col++) {
+      screen[(row-1) * NUM_COLUMNS + col] = ch;
+    }
+  }
+  x = 0;
+  y = 0;
+}
+
+void scroll () {
+  // Move all up
+  for (int row = 1; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLUMNS; col++) {
+      screen[(row-1) * NUM_COLUMNS + col] = screen[row * NUM_COLUMNS + col];
+    }
+  }
+  // Clean last row
+  Word ch = (Word) (' ' & 0x00FF);
+  for (int col = 0; col < NUM_COLUMNS; col++) {
+    screen[(NUM_ROWS-1) * NUM_COLUMNS + col] = ch;
+  }
+}
+
 void printc (char c) {
   printc_attributes(c, 0xF, 0x0, 0); // white on black
 }
 
-void printcc (char c, Byte fg_color, Byte bg_color) {
+void printc_color (char c, Byte fg_color, Byte bg_color) {
   printc_attributes(c, fg_color, bg_color, 0);
 }
 
-void printcxy (Byte mx, Byte my, char c) {
+void printc_xy (Byte mx, Byte my, char c) {
   Byte cx = x, cy = y;
   x=mx; y=my;
   printc(c);

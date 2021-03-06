@@ -9,15 +9,12 @@
 #include <stats.h>
 
 int write(int fd, char *buffer, int size);
+int getpid();
+int fork();
+void exit();
 
 void itoa(int a, char *b);
-
 int strlen(char *a);
-
-int getpid();
-
-int fork();
-
-void exit();
+char* strcat(char* str1, const char* str2);
 
 #endif  /* __LIBC_H__ */

@@ -70,12 +70,17 @@ int __attribute__((__section__(".text.main"))) main(void) {
 
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
+  clear();
+
   printk("Kernel Loaded!\n");
 
-  printk("Initialize hardware data\n");
+  printk("Initialize hardware data:\n");
   /* Initialize hardware data */
+  printk("* Define GDT\n");
   setGdt(); /* Definicio de la taula de segments de memoria */
+  printk("* Define IDT\n");
   setIdt(); /* Definicio del vector de interrupcions */
+  printk("* Define TSS\n");
   setTSS(); /* Definicio de la TSS */
 
   printk("Initialize memory\n");
