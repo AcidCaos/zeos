@@ -93,7 +93,7 @@ int strlen(char *a) {
 char* strcat(char* str1, const char* str2) {
   char* ret = str1;
   while (*str1) str1++;
-  while (*str1++ = *str2++);
+  while ((*str1++ = *str2++));
   return ret;
 }
 

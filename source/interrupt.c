@@ -133,12 +133,12 @@ void keyboard_routine() {
   unsigned char mkbrk = (p >> 7) & 0x01;
   unsigned char scancode = p & 0x7F;
   if (mkbrk == 0x00){ //Make
-    unsigned char pr = char_map[scancode];
+    char pr = char_map[scancode];
     if (pr == '\0') pr = 'C';
     // printc_xy(60, 0, pr);
-    unsigned char str[] = "Key pressed:  \n";
+    char str[] = "Key pressed:  \n";
     str[13] = pr;
-    printk(&str);
+    printk((char*) &str);
   }
   else if (mkbrk == 0x01){ //Break
     

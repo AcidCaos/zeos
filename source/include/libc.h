@@ -8,17 +8,26 @@
 
 #include <stats.h>
 
+
+// SYSCALLS: Assembler Wrappers
 int write(int fd, char *buffer, int size); // uses sysenter
 int write_deprecated(int fd, char *buffer, int size); // uses int
 int gettime();
-
+// TODO 
 int getpid();
 int fork();
 void exit();
 
-void itoa(int a, char *b);
-int strlen(char *a);
-char* strcat(char* str1, const char* str2);
+// SYSCALLS: C wrappers
+void perror();
+
+// Fancy console output
+void printl (char* buffer);
+
+// Basic string treatment
+void itoa(int num, char *buffer);
+int strlen(char *buffer);
+char* strcat(char* dest, const char* src);
 char* strcpy(char* dest, const char* src);
 
 #endif  /* __LIBC_H__ */
