@@ -15,37 +15,29 @@ int errno;
 void perror() {
 
   char buffer[128];
-  char err[8];
+  char aux[32];
 
   switch (errno) {
     case 0:
-      strcpy(buffer, "No error.\n");
-      write(1, buffer, strlen(buffer));
-      break;
-
-    case 14:
-      strcpy(buffer, "Bad address.\n");
-      write(1, buffer, strlen(buffer));
-      break;
-
-    case 22:
-      strcpy(buffer, "Invalid argument.\n");
-      write(1, buffer, strlen(buffer));
-      break;
-
-    case 38:
-      strcpy(buffer, "Function not implemented.\n");
-      write(1, buffer, strlen(buffer));
-      break;
-
+      strcpy(buffer, "No error.\n"); break;
+    case EBADF: // 9
+      strcpy(buffer, "Bad file number.\n"); break;
+    case EACCES: // 13
+      strcpy(buffer, "Permission denied.\n"); break;
+    case EFAULT: // 14
+      strcpy(buffer, "Bad address.\n"); break;
+    case EINVAL: // 22
+      strcpy(buffer, "Invalid argument.\n"); break;
+    case ENOSYS: // 38
+      strcpy(buffer, "Function not implemented.\n"); break;
     default:
       strcpy(buffer, "Unknown error. Error number is ");
-      itoa(errno, err);
-      strcat(buffer, err);
+      itoa(errno, aux);
+      strcat(buffer, aux);
       strcat(buffer, ".\n");
-      write(1, buffer, strlen(buffer));
       break;
   }
+  write(1, buffer, strlen(buffer));
 }
 
 
@@ -53,7 +45,14 @@ void perror() {
 ///    FANCY CONSOLE OUTPUT
 ///
 
-// PRINTF
+// print line
+void printl (char* buff) {
+  char new_buff[1024];
+  strcpy(new_buff, buff);
+  strcat(new_buff, "\n");
+  int ret = write(1, new_buff, strlen(buff));
+  if(ret < 0) perror();
+}
 
 
 ///

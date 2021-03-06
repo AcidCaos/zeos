@@ -110,7 +110,7 @@ void setIdt() {
   // syscall_handler with SYSENTER.
   writeMsr(0x174, __KERNEL_CS);
   writeMsr(0x175, INITIAL_ESP);
-  writeMsr(0x176, syscall_handler_sysenter);
+  writeMsr(0x176, (int) syscall_handler_sysenter);
 
   // syscall_handler with INT.   user privilege level = 3
   setTrapHandler(0x80, syscall_handler, 3);
@@ -130,14 +130,14 @@ void clock_routine() {
 
 void keyboard_routine() {
   unsigned char p = inb(0x60); // Keyboard data register port = 0x60
-  char mkbrk = (p >> 7) & 0x01;
-  char scancode = p & 0x7F;
+  unsigned char mkbrk = (p >> 7) & 0x01;
+  unsigned char scancode = p & 0x7F;
   if (mkbrk == 0x00){ //Make
-    char pr = char_map[scancode];
+    unsigned char pr = char_map[scancode];
     if (pr == '\0') pr = 'C';
-    printc_xy(0, 0, pr);
-    char str[] = "Pressed:  \n";
-    str[9] = pr;
+    // printc_xy(60, 0, pr);
+    unsigned char str[] = "Key pressed:  \n";
+    str[13] = pr;
     printk(&str);
   }
   else if (mkbrk == 0x01){ //Break
