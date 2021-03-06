@@ -6,8 +6,11 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
-
 #include <zeos_interrupt.h>
+#include <ticks.h>
+
+
+
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -120,12 +123,12 @@ void setIdt() {
  /* HARDWARE INTERRUPT ROUTINES */
 
 void clock_routine() {
-  // printk("[H.INT] Clock service routine\n");
+  zeos_ticks++;
+  zeos_show_clock();
   return;
 }
 
 void keyboard_routine() {
-  //printk("[H.INT] Keyboard service routine\n");
   unsigned char p = inb(0x60); // Keyboard data register port = 0x60
   char mkbrk = (p >> 7) & 0x01;
   char scancode = p & 0x7F;

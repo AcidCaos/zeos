@@ -59,7 +59,24 @@ ENTRY(write_deprecated) // uses INT
 	ret
 
 
-
+ENTRY(gettime) // SYSENTER
+	push	%ebp
+	movl	%esp, %ebp
+	movl	$0x0A, %eax // syscall identifier
+	pushl 	%ecx // they are modified by sysenter!!
+	pushl 	%edx
+	pushl 	$gettime_next_instr // save return direction to user (instruction after sysenter)
+	// fake dynamic link: used by the handler in system mode
+	pushl	%ebp
+	movl	%esp, %ebp
+        sysenter
+gettime_next_instr:
+	popl 	%ebp //(popl) pops (the fake ebp)
+	addl 	$4, %esp // pops (@ instruction after sysenter)
+	popl 	%edx // recover saved values
+	popl 	%ecx
+	pop	%ebp
+	ret
 
 
 

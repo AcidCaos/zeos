@@ -8,6 +8,8 @@
 #include <mm_address.h>
 #include <sched.h>
 
+#include <ticks.h>
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -51,6 +53,10 @@ int sys_write(int fd, char* buffer, int size) {
 
   return ret; /* ret = num. of bytes written */
 
+}
+
+int sys_gettime () {
+  return zeos_ticks;
 }
 
 

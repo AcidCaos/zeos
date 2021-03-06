@@ -14,14 +14,20 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
    * This register is a privileged one, and so it will raise an exception */
   /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
   
+  char buff[1024];
   
-  char buff[] = "[123456789]\n";
+  strcpy(buff, "Well, in fact this is a write()\n");
   if ( write(1, buff, strlen(buff)) < 0 ) perror();
-  //if ( write(1, buff, -1) < 0 ) perror(); // Invalid size
+
+  strcpy(buff, "write() with an invalid size:\n");
+  if ( write(1, buff, -1) < 0 ) perror(); // Invalid size
 
   int counter = 0;
   while(1) {
     counter = addAsm(counter, 1);
+    //itoa(gettime(), buff);
+    //strcat(buff, "\n");
+    //write(1, buff, strlen(buff));
   }
   
 }

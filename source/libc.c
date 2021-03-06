@@ -8,15 +8,11 @@
 
 int errno;
 
-// Syscalls
+///
+///    SYSCALLS
+///
 
 void perror() {
-  /*char err[8];
-  if (errno != 0) {
-    itoa(errno, &err);
-    char* buffer = strcat("An error occurred. Error number ", err);
-    write(1, buffer, strlen(buffer));
-  }*/
 
   char buffer[128];
   char err[8];
@@ -46,16 +42,23 @@ void perror() {
       strcpy(buffer, "Unknown error. Error number is ");
       itoa(errno, err);
       strcat(buffer, err);
-      strcpy(err, ".\n");
-      strcat(buffer, err);
+      strcat(buffer, ".\n");
       write(1, buffer, strlen(buffer));
       break;
   }
 }
 
 
-// library
+///
+///    FANCY CONSOLE OUTPUT
+///
 
+// PRINTF
+
+
+///
+///    BASIC STRING TREATMENT
+///
 
 // Integer to string
 void itoa(int a, char *b) {
