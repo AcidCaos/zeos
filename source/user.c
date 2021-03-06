@@ -1,7 +1,5 @@
 #include <libc.h>
 
-char buff[24];
-
 int pid;
 
 // include addAsm Header
@@ -17,11 +15,13 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
   
   
+  char buff[] = "[123456789]\n";
+  if ( write(1, buff, strlen(buff)) < 0 ) perror();
+  //if ( write(1, buff, -1) < 0 ) perror(); // Invalid size
+
   int counter = 0;
   while(1) {
     counter = addAsm(counter, 1);
-    char* buffer = "User write()";
-    write(1, buffer, strlen(buffer));
   }
   
 }

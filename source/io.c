@@ -98,7 +98,8 @@ void scroll () {
 }
 
 void printc (char c) {
-  printc_attributes(c, 0xF, 0x0, 0); // white on black
+  //printc_attributes(c, 0xF, 0x0, 0); // white on black
+  printc_attributes(c, 0x4, 0x7, 0); // red on gray
 }
 
 void printc_color (char c, Byte fg_color, Byte bg_color) {
@@ -116,6 +117,12 @@ void printk (char *string) {
   int i;
   for (i = 0; string[i]; i++)
     printc(string[i]);
+}
+
+void printk_color (char *string, Byte fg_color, Byte bg_color) {
+  int i;
+  for (i = 0; string[i]; i++)
+    printc_color(string[i], fg_color, bg_color);
 }
 
 

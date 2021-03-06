@@ -72,6 +72,16 @@
       movb $0x20, %al; \
       outb %al, $0x20;
 
+ENTRY(writeMsr)
+  push %ebp
+  movl %esp, %ebp
+  movl 8(%ebp), %ecx
+  movl 12(%ebp), %eax
+  movl $0, %edx
+  wrmsr
+  pop %ebp
+  ret
+
 
 ENTRY(clock_handler)
   SAVE_ALL
@@ -89,25 +99,64 @@ ENTRY(keyboard_handler)
   iret
 
 
-ENTRY(system_call_handler)
+ENTRY(syscall_handler_sysenter)
+  push 	$__USER_DS
+  push 	%ebp // user return address
+  pushfl
+  push 	$__USER_CS
+  push 	4(%ebp) // user return address
+
+  // Save Context
+  SAVE_ALL
+
+  // 0 <= eax <= MAX_SYSCALL
+  cmpl 	$0, %eax     
+  jl	sysenter_invalid_eax
+  cmpl 	$MAX_SYSCALL, %eax
+  jg	sysenter_invalid_eax
+
+  // call service routine
+  call 	*sys_call_table(, %eax, 4)
+  jmp sysenter_fin
+
+sysenter_invalid_eax:
+  /* ENOSYS: Function not implemented */
+  movl $-38, %eax 
+
+sysenter_fin:
+  // Return value:  modify software context! (0x18 == 24, eax position in stack)
+  movl %eax, 0x18(%esp) 
+  RESTORE_ALL
+  // Return address
+  movl (%esp), %edx
+  // User stack address
+  movl 12(%esp), %ecx
+  // Enable interrupts again
+  sti
+  sysexit
+
+
+
+ENTRY(syscall_handler) // UNUSED (see interrupt.c) // PARAMETERS ARE NOT CORRECTLY PASSED TO THE syscall service routine
   SAVE_ALL
 
   cmpl 	$0, %eax     // 0 <= eax <= MAX_SYSCALL
-  jl	invalid_eax
+  jl	int_invalid_eax
   cmpl 	$MAX_SYSCALL, %eax
-  jg	invalid_eax
+  jg	int_invalid_eax
 
   call 	*sys_call_table(, %eax, 4)
-  jmp fin
+  jmp int_fin
 
-invalid_eax:
+int_invalid_eax:
   movl $-38, %eax /* ENOSYS: Function not implemented */
 
-fin:
-  movl %eax, 0x18(%esp) // 0x18 == 24  <--- modify software context!
+int_fin:
+  movl %eax, 0x18(%esp) // Return value:  modify software context! (0x18 == 24, eax position in stack)
   RESTORE_ALL
   EOI
   iret
+
 
 
 

@@ -78,12 +78,18 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 // # include del header de entry.S
 void clock_handler();
 void keyboard_handler();
-void system_call_handler();
+
+void writeMsr(int msr, int data);
+void syscall_handler_sysenter();
+
+void syscall_handler();
 
 
 
-void setIdt()
-{
+
+
+void setIdt() {
+
   /* Program interrups/exception service routines */
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
@@ -98,8 +104,13 @@ void setIdt()
   setInterruptHandler(32, clock_handler, 0); // clock_handler
   setInterruptHandler(33, keyboard_handler, 0); // keyboard handler
 
-  setTrapHandler(0x80, system_call_handler, 3); // syscall_handler.   user privilege level = 3
+  // syscall_handler with SYSENTER.
+  writeMsr(0x174, __KERNEL_CS);
+  writeMsr(0x175, INITIAL_ESP);
+  writeMsr(0x176, syscall_handler_sysenter);
 
+  // syscall_handler with INT.   user privilege level = 3
+  setTrapHandler(0x80, syscall_handler, 3);
 
 
   set_idt_reg(&idtR);

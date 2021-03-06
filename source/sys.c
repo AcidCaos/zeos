@@ -37,17 +37,16 @@ void sys_exit() {
 }
 
 int sys_write(int fd, char* buffer, int size) {
-  
+
   char sys_buffer [1024];
   int ret;
 
   ret = check_fd(fd, ESCRIPTURA);
   if (ret != 0) return ret;
-  if (buffer == NULL) return -22; /* EINVAL: Invalid argument */
+  if (buffer == NULL) return -14; /* EFAULT: Bad address */
   if (size <= 0) return -22; /* EINVAL: Invalid argument */
-  
+
   copy_from_user(buffer, sys_buffer, size); /* utils.c :: copy from user-buffer to system-buffer */
-  
   ret = sys_write_console(sys_buffer, size); /* devices.c */
 
   return ret; /* ret = num. of bytes written */

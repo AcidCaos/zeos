@@ -8,7 +8,9 @@
 
 #include <stats.h>
 
-int write(int fd, char *buffer, int size);
+int write(int fd, char *buffer, int size); // uses sysenter
+int write_deprecated(int fd, char *buffer, int size); // uses int
+
 int getpid();
 int fork();
 void exit();
@@ -16,5 +18,6 @@ void exit();
 void itoa(int a, char *b);
 int strlen(char *a);
 char* strcat(char* str1, const char* str2);
+char* strcpy(char* dest, const char* src);
 
 #endif  /* __LIBC_H__ */
