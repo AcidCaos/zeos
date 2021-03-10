@@ -78,7 +78,7 @@ ENTRY(writeMsr)
   movl 8(%ebp), %ecx
   movl 12(%ebp), %eax
   movl $0, %edx
-  wrmsr
+  wrmsr // MSR[%ecx] = %edx:%eax (%edx is upper bits, set to zero)
   pop %ebp
   ret
 
@@ -100,10 +100,10 @@ ENTRY(keyboard_handler)
 
 
 ENTRY(syscall_handler_sysenter)
-  push 	$__USER_DS
+  push 	$__USER_DS // user data segment
   push 	%ebp // user return address
-  pushfl
-  push 	$__USER_CS
+  pushfl	// push flags register
+  push 	$__USER_CS // user code segment
   push 	4(%ebp) // user return address
 
   // Save Context
