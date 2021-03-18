@@ -115,7 +115,13 @@ void printc_xy (Byte mx, Byte my, char c) {
 void printk (char *string) {
   int i;
   for (i = 0; string[i]; i++)
-    printc_attributes(string[i], 0x4, 0x7, 0); // red on gray
+    printc_attributes(string[i], 0x1, 0x7, 0); // blue on gray
+}
+
+void errork (char *string) {
+  int i;
+  for (i = 0; string[i]; i++)
+    printc_attributes(string[i], 0xC, 0x8, 0); // light red on dark gray
 }
 
 

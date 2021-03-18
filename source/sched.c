@@ -53,21 +53,70 @@ void cpu_idle(void)
 	}
 }
 
-void init_idle (void)
-{
+
+
+
+
+void init_idle (void) {
+  
+}
+
+void init_task1 (void) {
+  
+}
+
+
+// Declare and Define Free queue and Ready queue
+struct list_head freequeue;
+struct list_head readyqueue;
+
+void init_sched () {
+
+  // Inicialize Free Queue
+  INIT_LIST_HEAD ( &freequeue );
+  // Inicialize Ready Queue --> It is empty at the beginning
+  INIT_LIST_HEAD ( &readyqueue );
+
+  // Add all task structs from task[] to the Free Queue (all of them are available)
+  for (int i = 0; i < NR_TASKS; i++) {
+    list_add ( &task[i].task.list_anchor, &freequeue );
+  }
+
+  if (&task[NR_TASKS-1].task != list_head_to_task_struct(&task[NR_TASKS-1].task.list_anchor)) {
+    // This should never happen
+    errork ("Error: list_head_to_task_struct() is not working properly.\n");
+  }
 
 }
 
-void init_task1(void)
-{
+
+struct task_struct *list_head_to_task_struct(struct list_head *l) {
+  
+  /*
+   *  struct task_struct {
+   *  ^  int PID;			
+   *  |  page_table_entry * dir_pages_baseAddr; 
+   *  L  struct list_head list; 
+   *  };
+   */
+  
+  // Given a pointer to list,
+  // get a pointer to the tast_struct.
+
+  // Here it is done by the hardcoded version: (return one int above)
+  // return "the pointer @" - 1 * sizeof(int)
+  // return (struct task_struct*) (l-1*sizeof(int));
+  return (struct task_struct*) ((char *)(l)-(unsigned long)( 1 * sizeof(int)));
+  
+  // Or could be done by the pre-processor:
+  //return ((struct task_struct *)((char *)(l)-(unsigned long)(&((struct task_struct *)0)->list_anchor)))
+  
 }
 
-
-void init_sched()
-{
-
-}
-
+/*
+ *   1 - The task_struct is located at the beginning of the page that it occupies.
+ *   2 - To get a pointer to the task struct of the current process' task_struct.
+ */
 struct task_struct* current()
 {
   int ret_value;
@@ -78,4 +127,10 @@ struct task_struct* current()
   );
   return (struct task_struct*)(ret_value&0xfffff000);
 }
+
+
+
+
+
+
 

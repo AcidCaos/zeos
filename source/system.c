@@ -98,9 +98,10 @@ int __attribute__((__section__(".text.main"))) main(void) {
   printk("Initialize scheduling\n");
   /* Initialize Scheduling */
   init_sched();
-
-  /* Initialize idle task  data */
+  printk("Initialize idle task data\n");
+  /* Initialize idle task data */
   init_idle();
+  printk("Initialize task 1 data\n");
   /* Initialize task 1 data */
   init_task1();
 

@@ -17,5 +17,7 @@ void printc(char c);
 void printc_color(char c, Byte fg_color, Byte bg_color);
 void printc_xy(Byte x, Byte y, char c);
 void printk(char *string);
+void errork(char *string);
+
 
 #endif  /* __IO_H__ */
