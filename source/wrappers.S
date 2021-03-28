@@ -42,7 +42,7 @@ write_error:
 	jmp end
 
 
-ENTRY(write_deprecated) // uses INT
+ENTRY(write_deprecated) // uses INT, no errno support
 	push	%ebp
 	movl	%esp, %ebp
 	push    %ebx

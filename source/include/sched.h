@@ -21,6 +21,8 @@ struct task_struct {
   struct list_head list_anchor; /* List head : This is the anchor (ancla) in the list */
   
   page_table_entry * dir_pages_baseAddr; /* Directory base address */
+
+  unsigned long kernel_esp;
   
   
   
@@ -42,21 +44,13 @@ extern union task_union task[NR_TASKS]; /* Vector de tasques */
 
 /* Inicialitza les dades del proces inicial */
 void init_task1(void);
-
 void init_idle(void);
-
 void init_sched(void);
-
 struct task_struct * current();
-
 void task_switch(union task_union*t);
-
 struct task_struct *list_head_to_task_struct(struct list_head *l);
-
 int allocate_DIR(struct task_struct *t);
-
 page_table_entry * get_PT (struct task_struct *t) ;
-
 page_table_entry * get_DIR (struct task_struct *t) ;
 
 /* Headers for the scheduling policy */

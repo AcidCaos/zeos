@@ -16,7 +16,19 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 }
 #endif
 
-extern struct list_head blocked;
+
+
+
+
+// extern struct list_head blocked;
+// Declare and Define Free queue and Ready queue
+struct list_head freequeue;
+struct list_head readyqueue;
+
+struct task_struct* idle_task;
+
+
+
 
 
 /* get_DIR - Returns the Page Directory address for task 't' */
@@ -54,26 +66,74 @@ void cpu_idle(void)
 }
 
 
+// Pop a list_head from the free queue
 
+struct task_struct* pop_free_task_struct () {
+
+  struct list_head * first_elem = list_first( &freequeue );
+  list_del (first_elem);
+  return list_head_to_task_struct(first_elem);
+
+}
 
 
 void init_idle (void) {
+
+  // Get available task_union from free queue
+  union task_union* tu;
+  struct task_struct* ts;
+  ts = pop_free_task_struct();
+  tu = (union task_union*) ts;
+
+  // Assign PID = 0
+  ts->PID = 0; // *(ts).PID = 0;
+
+  // Inicialize dir_pages_baseAddr with a new directory
+  allocate_DIR(ts);
+
+  // Inicialize an execution context for the process to be restored when assigned to RUN
+  //  *  Return address
+  tu->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) &cpu_idle;  // KERNEL_STACK_SIZE = 4Kbytes (1024 integers)
+  //  *  Fake EBP
+  tu->stack[KERNEL_STACK_SIZE - 2] = 0;
+  //  *  task_struct kernel_esp
+  ts->kernel_esp = (unsigned long) &tu->stack[KERNEL_STACK_SIZE - 2];
+
+  // Inicialize idle_task
+  idle_task = ts;
   
 }
 
 void init_task1 (void) {
   
+  // Get available task_union from free queue
+  union task_union* tu;
+  struct task_struct* ts;
+  ts = pop_free_task_struct();
+  tu = (union task_union*) ts;
+
+  // Assign PID = 0
+  ts->PID = 0;
+
+  // Inicialize dir_pages_baseAddr with a new directory
+  allocate_DIR(ts);
+
+  // Inicialization of address space // Allocate User Code and Data physical pages
+  set_user_pages(ts);
+
+  // Make TSS point to the bottom system stack
+  tss.esp0 = (unsigned long) &tu->stack[KERNEL_STACK_SIZE];
+  
+  // Set its page directory as the current page directory, setting register cr3
+  set_cr3(ts->dir_pages_baseAddr);
+  
 }
-
-
-// Declare and Define Free queue and Ready queue
-struct list_head freequeue;
-struct list_head readyqueue;
 
 void init_sched () {
 
   // Inicialize Free Queue
   INIT_LIST_HEAD ( &freequeue );
+
   // Inicialize Ready Queue --> It is empty at the beginning
   INIT_LIST_HEAD ( &readyqueue );
 
