@@ -42,7 +42,7 @@ write_error:
 	jmp end
 
 
-ENTRY(write_deprecated) // uses INT, no errno support
+ENTRY(write_deprecated) // uses INT. Raw write: no errno support
 	push	%ebp
 	movl	%esp, %ebp
 	push    %ebx
@@ -59,6 +59,7 @@ ENTRY(write_deprecated) // uses INT, no errno support
 	ret
 
 
+//int gettime();
 ENTRY(gettime) // SYSENTER
 	push	%ebp
 	movl	%esp, %ebp
@@ -78,6 +79,47 @@ gettime_next_instr:
 	pop	%ebp
 	ret
 
+
+//int getpid();
+ENTRY(getpid) // SYSENTER
+	push	%ebp
+	movl	%esp, %ebp
+	movl	$0x14, %eax // syscall identifier
+	pushl 	%ecx // they are modified by sysenter!!
+	pushl 	%edx
+	pushl 	$getpid_next_instr // save return direction to user (instruction after sysenter)
+	// fake dynamic link: used by the handler in system mode
+	pushl	%ebp
+	movl	%esp, %ebp
+        sysenter
+getpid_next_instr:
+	popl 	%ebp //(popl) pops (the fake ebp)
+	addl 	$4, %esp // pops (@ instruction after sysenter)
+	popl 	%edx // recover saved values
+	popl 	%ecx
+	pop	%ebp
+	ret
+
+
+//int fork();
+ENTRY(fork) // SYSENTER
+	push	%ebp
+	movl	%esp, %ebp
+	movl	$0x2, %eax // syscall identifier
+	pushl 	%ecx // they are modified by sysenter!!
+	pushl 	%edx
+	pushl 	$fork_next_instr // save return direction to user (instruction after sysenter)
+	// fake dynamic link: used by the handler in system mode
+	pushl	%ebp
+	movl	%esp, %ebp
+        sysenter
+fork_next_instr:
+	popl 	%ebp //(popl) pops (the fake ebp)
+	addl 	$4, %esp // pops (@ instruction after sysenter)
+	popl 	%edx // recover saved values
+	popl 	%ecx
+	pop	%ebp
+	ret
 
 
 

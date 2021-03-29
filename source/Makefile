@@ -33,6 +33,7 @@ SYSOBJ = \
 	utils.o \
 	hardware.o \
 	list.o \
+	systemwrap.o \
         
 
 LIBZEOS = -L . -l zeos
@@ -40,7 +41,6 @@ LIBZEOS = -L . -l zeos
 #add to USROBJ any object files required to complete the user program
 USROBJ = \
 	libc.o \
-	suma.o \
 	wrappers.o \
 	# libjp.a \
 
@@ -69,10 +69,10 @@ entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-suma.s: suma.S $(INCLUDEDIR)/asm.h
+wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
+systemwrap.s: systemwrap.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 

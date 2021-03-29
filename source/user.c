@@ -2,17 +2,7 @@
 
 int pid;
 
-// include addAsm Header
-int addAsm (int arg1, int arg2);
-
-int add (int arg1, int arg2) {
-	return arg1 + arg2;
-}
-
 int __attribute__ ((__section__(".text.main"))) main(void) {
-  /* Next line, tries to move value 0 to CR3 register. 
-     This register is a privileged one, and so it will raise an exception
-     __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
   
   char buff[1024];
   
@@ -47,9 +37,30 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   strcpy(buff, "The screen can scroll down (if you press enough keys..)\n");
   if ( write(1, buff, strlen(buff)) < 0 ) perror();
 
-  int counter = 0;
+  // TEST 6
+  strcpy(buff, "\n## -> TEST 6 : getpid()\n");
+  strcat(buff, "My PID is ");
+  if ( write(1, buff, strlen(buff))  < 0 ) perror();
+  itoa(getpid(), buff);
+  strcat(buff, "\n");
+  if ( write(1, buff, strlen(buff))  < 0 ) perror();
+
+  int last = 0;
   while(1) {
-    counter = addAsm(counter, 1);
+    int now = gettime();
+    if (now > last) {
+      last = now;
+      itoa(now, buff);
+      int my_pid = getpid();
+      strcpy(buff, "< ADAM > Tick=");  write(1, buff, strlen(buff));
+      itoa(now, buff);        
+      strcat(buff, "; PID="); write(1, buff, strlen(buff));
+      itoa(my_pid, buff);     
+      strcat(buff, "\n");     write(1, buff, strlen(buff));
+    }
   }
   
 }
+
+
+

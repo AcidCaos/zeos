@@ -27,6 +27,8 @@ struct list_head readyqueue;
 
 struct task_struct* idle_task;
 
+// Temp. for testing
+struct task_struct* adam_task;
 
 
 
@@ -59,6 +61,7 @@ void cpu_idle(void)
 {
 	__asm__ __volatile__("sti": : :"memory");
 
+	
 	while(1)
 	{
 	;
@@ -97,14 +100,18 @@ void init_idle (void) {
   //  *  Fake EBP
   tu->stack[KERNEL_STACK_SIZE - 2] = 0;
   //  *  task_struct kernel_esp
-  ts->kernel_esp = (unsigned long) &tu->stack[KERNEL_STACK_SIZE - 2];
+  ts->kernel_esp = (unsigned long) & tu->stack[KERNEL_STACK_SIZE - 2];
 
   // Inicialize idle_task
   idle_task = ts;
   
 }
 
-void init_task1 (void) {
+// Assembly code header includes
+void writeMsr(unsigned long msr, unsigned long data); // entry.S
+
+
+void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
   
   // Get available task_union from free queue
   union task_union* tu;
@@ -112,8 +119,8 @@ void init_task1 (void) {
   ts = pop_free_task_struct();
   tu = (union task_union*) ts;
 
-  // Assign PID = 0
-  ts->PID = 0;
+  // Assign PID = 1
+  ts->PID = 1;
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -121,11 +128,17 @@ void init_task1 (void) {
   // Inicialization of address space // Allocate User Code and Data physical pages
   set_user_pages(ts);
 
-  // Make TSS point to the bottom system stack
-  tss.esp0 = (unsigned long) &tu->stack[KERNEL_STACK_SIZE];
+  // Set the new system stack pointer
+  //  *  Make TSS point to the bottom system stack
+  tss.esp0 = (unsigned long) & tu->stack[KERNEL_STACK_SIZE];
+  //  *  For sysenter: modify MSR 0x175
+  writeMsr(0x175, (unsigned long) & tu->stack[KERNEL_STACK_SIZE]);
   
   // Set its page directory as the current page directory, setting register cr3
   set_cr3(ts->dir_pages_baseAddr);
+
+  // Temp for testing
+  adam_task = ts;
   
 }
 
@@ -150,7 +163,30 @@ void init_sched () {
 }
 
 
-struct task_struct *list_head_to_task_struct(struct list_head *l) {
+
+// Assembly code header includes from systemwrap.S
+void task_switch (union task_union* new);
+void asm_inner_task_switch (unsigned long* curr_k_esp, unsigned long new_k_esp);
+
+
+void inner_task_switch (union task_union* new) {
+  // Set the new system stack pointer
+  //  *  Make TSS point to the bottom system stack
+  tss.esp0 = (unsigned long) & new->stack[KERNEL_STACK_SIZE];
+  //  *  For sysenter: also modify MSR 0x175
+  writeMsr(0x175, (unsigned long) & new->stack[KERNEL_STACK_SIZE]);
+  
+  // Set new page directory as the current page directory, setting register cr3 (change current address space)
+  set_cr3(new->task.dir_pages_baseAddr);
+  
+  // kernel_esp and other mafias
+  asm_inner_task_switch ( (unsigned long *) & current()->kernel_esp, (unsigned long) new->task.kernel_esp);
+  
+}
+
+
+
+struct task_struct *list_head_to_task_struct (struct list_head *l) {
   
   /*
    *  struct task_struct {
@@ -166,10 +202,10 @@ struct task_struct *list_head_to_task_struct(struct list_head *l) {
   // Here it is done by the hardcoded version: (return one int above)
   // return "the pointer @" - 1 * sizeof(int)
   // return (struct task_struct*) (l-1*sizeof(int));
-  return (struct task_struct*) ((char *)(l)-(unsigned long)( 1 * sizeof(int)));
+  // return (struct task_struct*) ((char *)(l)-(unsigned long)( 1 * sizeof(int)));
   
   // Or could be done by the pre-processor:
-  //return ((struct task_struct *)((char *)(l)-(unsigned long)(&((struct task_struct *)0)->list_anchor)))
+  return ((struct task_struct *)((char *)(l)-(unsigned long)(&((struct task_struct *)0)->list_anchor)));
   
 }
 
@@ -177,8 +213,8 @@ struct task_struct *list_head_to_task_struct(struct list_head *l) {
  *   1 - The task_struct is located at the beginning of the page that it occupies.
  *   2 - To get a pointer to the task struct of the current process' task_struct.
  */
-struct task_struct* current()
-{
+
+struct task_struct* current() {
   int ret_value;
   
   __asm__ __volatile__(
@@ -188,6 +224,36 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+
+//
+//
+//     SHEDULER
+//
+//
+
+int aux_count = 0;
+void scheduler () {
+  aux_count++;
+  if (aux_count%5 == 4) {
+    if (current() == idle_task)  // Switches from idle <-to-> Adam forever. At least for now.
+      task_switch((union task_union *) adam_task);
+    else
+      task_switch((union task_union *) idle_task);
+  }
+}
+
+void sched_next_rr(){
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dest){
+}
+
+int needs_sched_rr(){
+  return 0;
+}
+
+void update_sched_data_rr(){
+}
 
 
 

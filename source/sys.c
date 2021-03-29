@@ -30,8 +30,14 @@ int sys_getpid() {
 int sys_fork() {
   int PID=-1;
 
+
+
+
   // creates the child process
   
+
+
+
   return PID;
 }
 

@@ -8,6 +8,7 @@
 #include <io.h>
 #include <zeos_interrupt.h>
 #include <ticks.h>
+#include <sched.h>
 
 
 
@@ -125,6 +126,7 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   zeos_show_clock();
+  scheduler();
   return;
 }
 

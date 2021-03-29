@@ -17,11 +17,11 @@ enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 // Type
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
-  // Do not move from here:
+  
   struct list_head list_anchor; /* List head : This is the anchor (ancla) in the list */
   
   page_table_entry * dir_pages_baseAddr; /* Directory base address */
-
+  
   unsigned long kernel_esp;
   
   
@@ -31,7 +31,7 @@ struct task_struct {
 // Type
 union task_union {
   struct task_struct task;
-  unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
+  unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, una per procés */
 };
 
 // task[] definition
@@ -54,6 +54,7 @@ page_table_entry * get_PT (struct task_struct *t) ;
 page_table_entry * get_DIR (struct task_struct *t) ;
 
 /* Headers for the scheduling policy */
+void scheduler();
 void sched_next_rr();
 void update_process_state_rr(struct task_struct *t, struct list_head *dest);
 int needs_sched_rr();

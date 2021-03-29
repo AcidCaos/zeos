@@ -13,8 +13,8 @@
 int write(int fd, char *buffer, int size); // uses sysenter
 int write_deprecated(int fd, char *buffer, int size); // uses int
 int gettime();
-// TODO 
 int getpid();
+// TODO 
 int fork();
 void exit();
 

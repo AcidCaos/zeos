@@ -4,7 +4,7 @@
 ENTRY (sys_call_table)       // %eax
 	.long sys_ni_syscall // 0    not implemented
 	.long sys_ni_syscall // 1    not implemented
-	.long sys_ni_syscall // 2    not implemented
+	.long sys_fork       // 2    fork
 	.long sys_ni_syscall // 3    not implemented
 	.long sys_write      // 4    write
 	.long sys_ni_syscall // 5    not implemented
@@ -13,6 +13,16 @@ ENTRY (sys_call_table)       // %eax
 	.long sys_ni_syscall // 8    not implemented
 	.long sys_ni_syscall // 9    not implemented
 	.long sys_gettime    // 10   gettime
+	.long sys_ni_syscall // 11   not implemented
+	.long sys_ni_syscall // 12   not implemented
+	.long sys_ni_syscall // 13   not implemented
+	.long sys_ni_syscall // 14   not implemented
+	.long sys_ni_syscall // 15   not implemented
+	.long sys_ni_syscall // 16   not implemented
+	.long sys_ni_syscall // 17   not implemented
+	.long sys_ni_syscall // 18   not implemented
+	.long sys_ni_syscall // 19   not implemented
+	.long sys_getpid     // 20   getpid
 
 .globl MAX_SYSCALL
 MAX_SYSCALL = (. - sys_call_table) / 4
