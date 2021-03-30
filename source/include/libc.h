@@ -14,8 +14,8 @@ int write(int fd, char *buffer, int size); // uses sysenter
 int write_deprecated(int fd, char *buffer, int size); // uses int
 int gettime();
 int getpid();
-// TODO 
 int fork();
+// TODO
 void exit();
 
 // SYSCALLS: C wrappers

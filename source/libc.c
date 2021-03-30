@@ -22,6 +22,10 @@ void perror() {
       strcpy(buffer, "No error.\n"); break;
     case EBADF: // 9
       strcpy(buffer, "Bad file number.\n"); break;
+    case EAGAIN: // 11
+      strcpy(buffer, "Try again.\n"); break;
+    case ENOMEM: // 12
+      strcpy(buffer, "Out of memory.\n"); break;
     case EACCES: // 13
       strcpy(buffer, "Permission denied.\n"); break;
     case EFAULT: // 14

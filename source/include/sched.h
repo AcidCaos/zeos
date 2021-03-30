@@ -14,21 +14,22 @@
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
-// Type
+// Max PID used
+int MAX_PID;
+
+// TASK STRUCT
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
-  
   struct list_head list_anchor; /* List head : This is the anchor (ancla) in the list */
-  
   page_table_entry * dir_pages_baseAddr; /* Directory base address */
-  
-  unsigned long kernel_esp;
-  
-  
+  unsigned long kernel_esp;     /* Position in the stack when last in inner_task_switch */
+  int quantum;			/* Process total quantum */
+  enum state_t state;		/* State of the process */
+  //struct stats stats;		/* Process rr-policy related statistics */
   
 };
 
-// Type
+// TASK UNION
 union task_union {
   struct task_struct task;
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, una per procés */
@@ -37,10 +38,23 @@ union task_union {
 // task[] definition
 extern union task_union task[NR_TASKS]; /* Vector de tasques */
 
+// LISTS
+struct list_head freequeue;
+struct list_head readyqueue;
+
+
+
+// FUNCIONS
+
 
 #define KERNEL_ESP(t)       	(DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
 #define INITIAL_ESP       	KERNEL_ESP(&task[1])
+
+/* Funcions per les qües */
+
+struct task_struct* pop_task_struct (struct list_head* queue);
+void push_task_struct (struct task_struct*, struct list_head* queue);
 
 /* Inicialitza les dades del proces inicial */
 void init_task1(void);

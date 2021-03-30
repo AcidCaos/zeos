@@ -36,3 +36,11 @@ ENTRY(asm_inner_task_switch)
 	pop 	%ebp // Restore %EBP from new Stack
 
 	ret
+
+// int asm_get_ebp();
+ENTRY(asm_get_ebp)
+	mov	%ebp, %eax
+	ret
+
+
+

@@ -21,9 +21,9 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 
 
 // extern struct list_head blocked;
-// Declare and Define Free queue and Ready queue
-struct list_head freequeue;
-struct list_head readyqueue;
+// Declare and Define Free queue and Ready queue --> in sched.h
+// struct list_head freequeue;
+// struct list_head readyqueue;
 
 struct task_struct* idle_task;
 
@@ -69,23 +69,29 @@ void cpu_idle(void)
 }
 
 
-// Pop a list_head from the free queue
+// Pop a list_head from the FREE queue
+struct task_struct* pop_task_struct (struct list_head* queue) {
 
-struct task_struct* pop_free_task_struct () {
-
-  struct list_head * first_elem = list_first( &freequeue );
+  struct list_head * first_elem = list_first( queue );
   list_del (first_elem);
   return list_head_to_task_struct(first_elem);
 
 }
 
+// Push list_head to the READY queue
+void push_task_struct (struct task_struct* elem, struct list_head* queue) {
+
+  struct list_head * to_insert = & elem->list_anchor;
+  list_add_tail(to_insert, queue);
+
+}
 
 void init_idle (void) {
 
   // Get available task_union from free queue
   union task_union* tu;
   struct task_struct* ts;
-  ts = pop_free_task_struct();
+  ts = pop_task_struct( &freequeue );
   tu = (union task_union*) ts;
 
   // Assign PID = 0
@@ -116,11 +122,14 @@ void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
   // Get available task_union from free queue
   union task_union* tu;
   struct task_struct* ts;
-  ts = pop_free_task_struct();
+  ts = pop_task_struct( &freequeue );
   tu = (union task_union*) ts;
 
   // Assign PID = 1
   ts->PID = 1;
+
+  // Set MAX_PID
+  MAX_PID = 200;
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -231,18 +240,25 @@ struct task_struct* current() {
 //
 //
 
-int aux_count = 0;
-void scheduler () {
-  aux_count++;
+// int aux_count = 0;
+void scheduler () { // Called by the clock_routine() at interrupt.c
+  
+  update_sched_data_rr();
+  if (needs_sched_rr()) {
+    if (current() != idle_task) push_task_struct(current(), &readyqueue);
+    sched_next_rr();
+  }
+  /*aux_count++;
   if (aux_count%5 == 4) {
     if (current() == idle_task)  // Switches from idle <-to-> Adam forever. At least for now.
       task_switch((union task_union *) adam_task);
     else
       task_switch((union task_union *) idle_task);
-  }
+  }*/
 }
 
 void sched_next_rr(){
+  
 }
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest){
