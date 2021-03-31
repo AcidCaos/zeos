@@ -118,3 +118,9 @@ gdb: zeos.bin
 
 emuldbg: zeos.bin
 	bochs_nogdb -q -f .bochsrc
+
+emuldbg_gui: zeos.bin
+	bochs_nogdb -q -f .bochsrc_gui
+
+
+

@@ -8,14 +8,15 @@
 #include <list.h>
 #include <types.h>
 #include <mm_address.h>
+#include <stats.h>
 
-#define NR_TASKS      10
+#define NR_TASKS      		10
 #define KERNEL_STACK_SIZE	1024
 
-enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+#define INIT_QUANTUM 		10  // Default Quantum (Quantum is inherited, and init is father of all)
+#define IDLE_QUANTUM 		5   // idle Quantum
 
-// Max PID used
-int MAX_PID;
+enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 // TASK STRUCT
 struct task_struct {
@@ -25,14 +26,14 @@ struct task_struct {
   unsigned long kernel_esp;     /* Position in the stack when last in inner_task_switch */
   int quantum;			/* Process total quantum */
   enum state_t state;		/* State of the process */
-  //struct stats stats;		/* Process rr-policy related statistics */
+  struct stats stats;		/* Process rr-policy related statistics */
   
 };
 
 // TASK UNION
 union task_union {
   struct task_struct task;
-  unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, una per procés */
+  unsigned long stack[KERNEL_STACK_SIZE]; /* pila de sistema, una per procés */
 };
 
 // task[] definition
@@ -41,6 +42,7 @@ extern union task_union task[NR_TASKS]; /* Vector de tasques */
 // LISTS
 struct list_head freequeue;
 struct list_head readyqueue;
+struct list_head blocked;
 
 
 
@@ -50,6 +52,9 @@ struct list_head readyqueue;
 #define KERNEL_ESP(t)       	(DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
 #define INITIAL_ESP       	KERNEL_ESP(&task[1])
+
+/* Funció pel sys_fork */
+int get_next_pid ();
 
 /* Funcions per les qües */
 

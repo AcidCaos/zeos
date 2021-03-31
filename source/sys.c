@@ -79,7 +79,8 @@ int sys_fork() {
   // (b) Copy task_struct to child ---------------------------* System Stack (private)
   // SYSTEM STACK: Copy parent's task_union to the child.
   // Child t_u already allocated, and in the TP.
-  copy_data((struct task_struct*) current(), (struct task_struct*) fill_ts, KERNEL_STACK_SIZE);
+  // copy_data((struct task_struct*) current(), (struct task_struct*) fill_ts, KERNEL_STACK_SIZE);
+  copy_data((union task_union*) current(), (union task_union*) fill_ts, sizeof(union task_union));
   
   // (c) Allocate a new page-Directory for child -- Assignar directori, TP, al fill
   allocate_DIR(fill_ts);
@@ -98,8 +99,8 @@ int sys_fork() {
   // (e) Copy User Data+Stack to child allocated pages -------* User Data + Stack (private)
   offset = NUM_PAG_KERNEL + NUM_PAG_CODE;//PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
   unsigned long temp_offset = offset + NUM_PAG_DATA; // Després de les pags de Data, no s'usen aquelles pagines.
+  printk("copy user data+stack start\n");
   for (int i = 0; i < NUM_PAG_DATA; i++) {
-    printk("=====i=====\n");
     unsigned long num_frame_fisic = get_frame(TP_fill, offset + i);
     // TP parent: temp. entry to map to child's physical frame, so we can access and modify them.
     set_ss_pag(TP_pare, temp_offset + i, num_frame_fisic);
@@ -107,46 +108,56 @@ int sys_fork() {
     from = (offset + i) << 12; // adreça inicial pàg. lògica del pare
     to = (temp_offset + i) << 12; // adr inicial pàg. lògica temp. del pare que apunta a fís. del fill
     //to = (temp_offset) << 12;
-    printk("copy_data() start\n");
+    
     copy_data((void *) from, (void *) to, PAGE_SIZE); // Accedeix a una entrada de la TP no allocatada.
     //copy_data((void *) from, (void *) to, 1); // Accedeix a una entrada de la TP no allocatada.
-    printk("copy_data() end\n");
     del_ss_pag(TP_pare, temp_offset + i); // Undo temp. mapping
   }
+  printk("copy user data+stack end\n");
   
   // (f) set System Code and Data TP entries to child --------* System Code + Data (shared)
   offset = (KERNEL_START >> 12); // Numero pag. lògica (i física) inici codi i dades kernel
   for (int i = 0; i < NUM_PAG_KERNEL; i++) {
-    TP_fill[i + offset].entry = TP_pare[i + offset].entry;
+    set_ss_pag(TP_fill, offset + i, get_frame(TP_pare, offset + i));
+    //TP_fill[i + offset].entry = TP_pare[i + offset].entry;
   }
   
   // (g) set User Code TP entries to child -------------------* User Code (shared)
   offset = PAG_LOG_INIT_CODE; // Numero pag. lògica inici de codi usuari
   for (int i = 0; i < NUM_PAG_CODE; i++) {
-    TP_fill[i + offset].entry = TP_pare[i + offset].entry;
+    set_ss_pag(TP_fill, offset + i, get_frame(TP_pare, offset + i));
+    //TP_fill[i + offset].entry = TP_pare[i + offset].entry;
   }
   
-  printk("H\n");
   // (h) Flush TLB
   set_cr3(current()->dir_pages_baseAddr); // És @ del directori, no de la TP
   
-  // (i) Assign new PID to child
-  PID = MAX_PID ++; // sched.h (initialized in init_task1() at sched.c)
+  // (i) Assign new PID to child and other task_struct data
+  PID = get_next_pid(); // sched.h
   fill_ts->PID = PID;
-  printk("I\n");
+  fill_ts->state = ST_READY;
+  
+  /*
   // (j) Map parent's ebp to child's stack
   unsigned long EBP_pare = asm_get_ebp(); // systemwrap.S
-  //unsigned long fill_ebp = EBP_pare - (unsigned long)current() + (unsigned long)fill_ts;
-  //fill_ts->kernel_esp = fill_ebp;
-  printk("K\n");
+  int fill_ebp_index = (EBP_pare - (int)current() + (int)fill_ts);// / sizeof(int);
+  // Això està malament calculat: (Surt 8fedc, hauria: ~1cfb8)
+  fill_ts->kernel_esp = & (fill_tu->stack[fill_ebp_index - 1]); // Un més amunt!
+  */
+  // (j) Map parent's ebp to child's stack
+  unsigned long EBP_pare = asm_get_ebp(); // systemwrap.S
+  int fill_ebp_index = (EBP_pare - (int)current()) / sizeof(int);
+  // Això està ben calculat: (Surt: ~1cfb4)
+  fill_ts->kernel_esp = & (fill_tu->stack[fill_ebp_index - 1]);
+
+
+  
   // (k) Prepare child for context switch
-  int ebp_stack_offset = (int)((EBP_pare - (unsigned long)current()) / sizeof(unsigned long)); // 4 bytes ?
-  fill_tu->stack[ebp_stack_offset] = (unsigned long) & ret_from_fork;
-  fill_tu->stack[ebp_stack_offset - 1] = 0;
-  fill_ts->kernel_esp = (unsigned long) & (fill_tu->stack[ebp_stack_offset - 1]);
+  fill_tu->stack[fill_ebp_index] = (unsigned long) & ret_from_fork;
+  fill_tu->stack[fill_ebp_index - 1] = 0xCAFE;
 
   // (l) Init Child process stats
-  // TODO 
+  // TODO
   
   // (m) Put child to READY queue
   push_task_struct (fill_ts, &readyqueue);

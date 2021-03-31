@@ -45,7 +45,12 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   strcat(buff, "\n");
   if ( write(1, buff, strlen(buff))  < 0 ) perror();
 
+  // TEST 7
+  strcpy(buff, "\n## -> TEST 7 : fork()\n");
+  if ( write(1, buff, strlen(buff))  < 0 ) perror();
+  
   int ret = fork();
+  
   if (ret == 0) { // FILL
     int last = 0;
     while(1) {
@@ -54,7 +59,7 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
         last = now;
         itoa(now, buff);
         int my_pid = getpid();
-        strcpy(buff, "< FILL > Tick=");  write(1, buff, strlen(buff));
+        strcpy(buff, "FILL > Tick=");  write(1, buff, strlen(buff));
         itoa(now, buff);
         strcat(buff, "; PID="); write(1, buff, strlen(buff));
         itoa(my_pid, buff);     
@@ -70,7 +75,7 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
         last = now;
         itoa(now, buff);
         int my_pid = getpid();
-        strcpy(buff, "< ADAM > Tick=");  write(1, buff, strlen(buff));
+        strcpy(buff, "ADAM > Tick=");  write(1, buff, strlen(buff));
         itoa(now, buff);        
         strcat(buff, "; PID="); write(1, buff, strlen(buff));
         itoa(my_pid, buff);     

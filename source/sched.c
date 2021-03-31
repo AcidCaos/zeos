@@ -17,20 +17,7 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 #endif
 
 
-
-
-
-// extern struct list_head blocked;
-// Declare and Define Free queue and Ready queue --> in sched.h
-// struct list_head freequeue;
-// struct list_head readyqueue;
-
 struct task_struct* idle_task;
-
-// Temp. for testing
-struct task_struct* adam_task;
-
-
 
 
 /* get_DIR - Returns the Page Directory address for task 't' */
@@ -61,7 +48,7 @@ void cpu_idle(void)
 {
 	__asm__ __volatile__("sti": : :"memory");
 
-	
+	printk(" IDLE ! \n");
 	while(1)
 	{
 	;
@@ -96,6 +83,7 @@ void init_idle (void) {
 
   // Assign PID = 0
   ts->PID = 0; // *(ts).PID = 0;
+  ts->quantum = IDLE_QUANTUM;
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -127,9 +115,8 @@ void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
 
   // Assign PID = 1
   ts->PID = 1;
-
-  // Set MAX_PID
-  MAX_PID = 200;
+  ts->quantum = INIT_QUANTUM;
+  ts->state = ST_RUN;
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -145,9 +132,6 @@ void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
   
   // Set its page directory as the current page directory, setting register cr3
   set_cr3(ts->dir_pages_baseAddr);
-
-  // Temp for testing
-  adam_task = ts;
   
 }
 
@@ -171,6 +155,12 @@ void init_sched () {
 
 }
 
+
+//
+//
+//    TASK SWITCH
+//
+//
 
 
 // Assembly code header includes from systemwrap.S
@@ -240,36 +230,92 @@ struct task_struct* current() {
 //
 //
 
-// int aux_count = 0;
+// Scheduling Variables
+int MAX_PID = 200; // Max used PID.  pids:{0,1,200,201,...}
+int remaining_ticks = INIT_QUANTUM; // Current spent running ticks
+
+int get_next_pid () { 
+  return MAX_PID ++; // MAX_PID initialized in init_task1()
+}
+
+// TODO Delete this
+void printn(int n) {
+  if (n >= 200) n = n - 200 + 4;
+  char p[] = " ";
+  p[0] = '0' + n;
+  printk(p);
+}
+
 void scheduler () { // Called by the clock_routine() at interrupt.c
-  
+  printk("scheduler ()\n");
   update_sched_data_rr();
   if (needs_sched_rr()) {
-    if (current() != idle_task) push_task_struct(current(), &readyqueue);
+    update_process_state_rr(current(), &readyqueue);
     sched_next_rr();
   }
-  /*aux_count++;
-  if (aux_count%5 == 4) {
-    if (current() == idle_task)  // Switches from idle <-to-> Adam forever. At least for now.
-      task_switch((union task_union *) adam_task);
-    else
-      task_switch((union task_union *) idle_task);
-  }*/
+}
+
+int get_quantum (struct task_struct *t) {
+  return t->quantum;
+}
+
+void set_quantum (struct task_struct *t, int new_quantum) {
+  t->quantum = new_quantum;
+  return;
+}
+
+void update_sched_data_rr(){
+  remaining_ticks --;
+  // Update stats
+}
+
+int needs_sched_rr(){
+  return (remaining_ticks <= 0);
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dest){
+  printk("  *  update_process_state_rr ()\n");
+  printk("     - dest=readyqueue ; PID=");
+  printn(t->PID);
+  printk("\n");
+  
+  if (t == idle_task) return;
+  
+  if (current()->state != ST_RUN) { // if now is Ready/Free/Blocked, delete from that previous queue
+    list_del(&(t->list_anchor));
+  }
+  if (dest != NULL) { // if next is not RUN, push to new queue
+    push_task_struct(current(), dest);
+  } 
+  else {  // if next is RUN: set state and remaining_ticks
+    current()->state = ST_RUN; 
+    remaining_ticks = get_quantum(t); 
+  }
+  if (dest == &readyqueue) current()->state = ST_READY;
+  if (dest == &blocked) current()->state = ST_BLOCKED;
 }
 
 void sched_next_rr(){
   
+  struct task_struct * new_ts;
+  
+  if (list_empty( &readyqueue )) new_ts = idle_task;
+  else new_ts = pop_task_struct( &readyqueue );
+  
+  new_ts->state=ST_RUN;
+  remaining_ticks = get_quantum(new_ts);
+  
+  printk("  *  sched_next_rr ()\n");
+  printk("     - New RUN is PID=");
+  printn(new_ts->PID);
+  printk(" ~ 4 is 200 \n");
+
+  if (current() == new_ts) {printk("No switch: no more in ready.\n"); return;}
+  task_switch((union task_union *) new_ts);
 }
 
-void update_process_state_rr(struct task_struct *t, struct list_head *dest){
-}
 
-int needs_sched_rr(){
-  return 0;
-}
 
-void update_sched_data_rr(){
-}
 
 
 
