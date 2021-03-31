@@ -97,7 +97,7 @@ int sys_fork() {
   }
   
   // (e) Copy User Data+Stack to child allocated pages -------* User Data + Stack (private)
-  offset = NUM_PAG_KERNEL + NUM_PAG_CODE;//PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
+  offset = PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
   unsigned long temp_offset = offset + NUM_PAG_DATA; // Després de les pags de Data, no s'usen aquelles pagines.
   printk("copy user data+stack start\n");
   for (int i = 0; i < NUM_PAG_DATA; i++) {
@@ -148,7 +148,7 @@ int sys_fork() {
   unsigned long EBP_pare = asm_get_ebp(); // systemwrap.S
   int fill_ebp_index = (EBP_pare - (int)current()) / sizeof(int);
   // Això està ben calculat: (Surt: ~1cfb4)
-  fill_ts->kernel_esp = & (fill_tu->stack[fill_ebp_index - 1]);
+  fill_ts->kernel_esp = (unsigned long) & (fill_tu->stack[fill_ebp_index - 1]);
 
 
   
@@ -166,6 +166,24 @@ int sys_fork() {
 }
 
 void sys_exit() {
+  //printk("-------------------------> exit(1) \n");
+  // (a) Free the physical frames (for Data+Stack)
+  unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;
+  page_table_entry* TP_proces = get_PT(current());
+  for (int i = 0; i < NUM_PAG_DATA; i++) {
+    free_frame(get_frame(TP_proces, offset + i));
+    del_ss_pag(TP_proces, offset + i);
+  }
+  
+  // (b) Free task struct
+  push_task_struct(current(), &freequeue);
+  
+  // (c) Schedule next process
+  //printk("-------------------------> exit(2) \n");
+  sched_next_rr();
+  
+  printk("exit(): This point should never be reached.\n");
+  return;
 }
 
 int sys_write(int fd, char* buffer, int size) {

@@ -15,7 +15,6 @@ int write_deprecated(int fd, char *buffer, int size); // uses int
 int gettime();
 int getpid();
 int fork();
-// TODO
 void exit();
 
 // SYSCALLS: C wrappers

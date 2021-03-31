@@ -15,5 +15,5 @@ debugger_log: -
 port_e9_hack: enabled=1
 
 # Uncomment next line to enable GUI debugger
-# display_library: x, options="gui_debug"
+display_library: x, options="gui_debug"
 

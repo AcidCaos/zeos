@@ -247,7 +247,7 @@ void printn(int n) {
 }
 
 void scheduler () { // Called by the clock_routine() at interrupt.c
-  printk("scheduler ()\n");
+  //printk("scheduler ()\n");
   update_sched_data_rr();
   if (needs_sched_rr()) {
     update_process_state_rr(current(), &readyqueue);
@@ -274,6 +274,7 @@ int needs_sched_rr(){
 }
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest){
+  printk("=======================================\n");
   printk("  *  update_process_state_rr ()\n");
   printk("     - dest=readyqueue ; PID=");
   printn(t->PID);
@@ -311,6 +312,7 @@ void sched_next_rr(){
   printk(" ~ 4 is 200 \n");
 
   if (current() == new_ts) {printk("No switch: no more in ready.\n"); return;}
+  printk("=======================================\n");
   task_switch((union task_union *) new_ts);
 }
 

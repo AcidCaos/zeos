@@ -121,6 +121,26 @@ fork_next_instr:
 	pop	%ebp
 	ret
 
+//void exit();
+ENTRY(exit) // SYSENTER
+	push	%ebp
+	movl	%esp, %ebp
+	movl	$0x1, %eax // syscall identifier
+	pushl 	%ecx // they are modified by sysenter!!
+	pushl 	%edx
+	pushl 	$exit_next_instr // save return direction to user (instruction after sysenter)
+	// fake dynamic link: used by the handler in system mode
+	pushl	%ebp
+	movl	%esp, %ebp
+        sysenter
+exit_next_instr:
+	popl 	%ebp //(popl) pops (the fake ebp)
+	addl 	$4, %esp // pops (@ instruction after sysenter)
+	popl 	%edx // recover saved values
+	popl 	%ecx
+	pop	%ebp
+	ret
+
 
 
 

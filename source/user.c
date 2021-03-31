@@ -51,9 +51,9 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   
   int ret = fork();
   
-  if (ret == 0) { // FILL
+  if (ret == 0) { // FILL 1
     int last = 0;
-    while(1) {
+    while(last < 200) {
       int now = gettime();
       if (now > last) {
         last = now;
@@ -66,23 +66,46 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
         strcat(buff, "\n");     write(1, buff, strlen(buff));
       }
     }
+    exit();
   }
-  else { // PARE
+
+  int ret2 = fork();
+  
+  if (ret2 == 0) { // FILL 2
     int last = 0;
-    while(1) {
+    while(last < 100) {
       int now = gettime();
       if (now > last) {
         last = now;
         itoa(now, buff);
         int my_pid = getpid();
-        strcpy(buff, "ADAM > Tick=");  write(1, buff, strlen(buff));
-        itoa(now, buff);        
+        strcpy(buff, "SON2 > Tick=");  write(1, buff, strlen(buff));
+        itoa(now, buff);
         strcat(buff, "; PID="); write(1, buff, strlen(buff));
         itoa(my_pid, buff);     
         strcat(buff, "\n");     write(1, buff, strlen(buff));
       }
     }
+    exit();
   }
+  
+  // PARE
+  int last = 0;
+  while(last < 300) {
+    int now = gettime();
+    if (now > last) {
+      last = now;
+      itoa(now, buff);
+      int my_pid = getpid();
+      strcpy(buff, "ADAM > Tick=");  write(1, buff, strlen(buff));
+      itoa(now, buff);        
+      strcat(buff, "; PID="); write(1, buff, strlen(buff));
+      itoa(my_pid, buff);     
+      strcat(buff, "\n");     write(1, buff, strlen(buff));
+    }
+  }
+  exit();
+  return 0; // Never reached
 }
 
 
