@@ -20,6 +20,8 @@ void perror() {
   switch (errno) {
     case 0:
       strcpy(buffer, "No error.\n"); break;
+    case ESRCH: // 3
+      strcpy(buffer, "No such process.\n"); break;
     case EBADF: // 9
       strcpy(buffer, "Bad file number.\n"); break;
     case EAGAIN: // 11
@@ -41,7 +43,7 @@ void perror() {
       strcat(buffer, ".\n");
       break;
   }
-  write(1, buffer, strlen(buffer));
+  write(2, buffer, strlen(buffer)); // We'll hope this write does work...
 }
 
 

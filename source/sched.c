@@ -5,6 +5,8 @@
 #include <sched.h>
 #include <mm.h>
 #include <io.h>
+#include <stats.h>
+
 
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
@@ -48,7 +50,6 @@ void cpu_idle(void)
 {
 	__asm__ __volatile__("sti": : :"memory");
 
-	printk(" IDLE ! \n");
 	while(1)
 	{
 	;
@@ -84,6 +85,7 @@ void init_idle (void) {
   // Assign PID = 0
   ts->PID = 0; // *(ts).PID = 0;
   ts->quantum = IDLE_QUANTUM;
+  init_stats(&ts->stats);
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -105,7 +107,7 @@ void init_idle (void) {
 void writeMsr(unsigned long msr, unsigned long data); // entry.S
 
 
-void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
+void init_task1 (void) { //(Task1 is Adam: common antecessor of all processes)
   
   // Get available task_union from free queue
   union task_union* tu;
@@ -117,6 +119,7 @@ void init_task1 (void) { //(Task1 is Adam: antecessor of all processes)
   ts->PID = 1;
   ts->quantum = INIT_QUANTUM;
   ts->state = ST_RUN;
+  init_stats(&ts->stats);
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
@@ -184,9 +187,10 @@ void inner_task_switch (union task_union* new) {
 }
 
 
-
 struct task_struct *list_head_to_task_struct (struct list_head *l) {
-  
+  // Given a pointer to list,
+  // get a pointer to the tast_struct.
+
   /*
    *  struct task_struct {
    *  ^  int PID;			
@@ -195,24 +199,14 @@ struct task_struct *list_head_to_task_struct (struct list_head *l) {
    *  };
    */
   
-  // Given a pointer to list,
-  // get a pointer to the tast_struct.
-
   // Here it is done by the hardcoded version: (return one int above)
-  // return "the pointer @" - 1 * sizeof(int)
-  // return (struct task_struct*) (l-1*sizeof(int));
   // return (struct task_struct*) ((char *)(l)-(unsigned long)( 1 * sizeof(int)));
-  
   // Or could be done by the pre-processor:
   return ((struct task_struct *)((char *)(l)-(unsigned long)(&((struct task_struct *)0)->list_anchor)));
-  
 }
 
-/*
- *   1 - The task_struct is located at the beginning of the page that it occupies.
- *   2 - To get a pointer to the task struct of the current process' task_struct.
- */
-
+//   1 - The task_struct is located at the beginning of the page that it occupies.
+//   2 - To get a pointer to the task struct of the current process' task_struct.
 struct task_struct* current() {
   int ret_value;
   
@@ -236,14 +230,6 @@ int remaining_ticks = INIT_QUANTUM; // Current spent running ticks
 
 int get_next_pid () { 
   return MAX_PID ++; // MAX_PID initialized in init_task1()
-}
-
-// TODO Delete this
-void printn(int n) {
-  if (n >= 200) n = n - 200 + 4;
-  char p[] = " ";
-  p[0] = '0' + n;
-  printk(p);
 }
 
 void scheduler () { // Called by the clock_routine() at interrupt.c
@@ -274,11 +260,6 @@ int needs_sched_rr(){
 }
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest){
-  printk("=======================================\n");
-  printk("  *  update_process_state_rr ()\n");
-  printk("     - dest=readyqueue ; PID=");
-  printn(t->PID);
-  printk("\n");
   
   if (t == idle_task) return;
   
@@ -292,28 +273,30 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dest){
     current()->state = ST_RUN; 
     remaining_ticks = get_quantum(t); 
   }
-  if (dest == &readyqueue) current()->state = ST_READY;
-  if (dest == &blocked) current()->state = ST_BLOCKED;
+  if (dest == &readyqueue) {
+    current()->state = ST_READY;
+    chstat_sys_to_ready ();
+  }
+  else if (dest == &blocked) 
+    current()->state = ST_BLOCKED;
 }
 
 void sched_next_rr(){
   
   struct task_struct * new_ts;
   
-  if (list_empty( &readyqueue )) new_ts = idle_task;
+  if (list_empty( &readyqueue )) {
+    new_ts = idle_task;
+    //printk(" IDLE ! \n");
+  }
   else new_ts = pop_task_struct( &readyqueue );
   
   new_ts->state=ST_RUN;
   remaining_ticks = get_quantum(new_ts);
-  
-  printk("  *  sched_next_rr ()\n");
-  printk("     - New RUN is PID=");
-  printn(new_ts->PID);
-  printk(" ~ 4 is 200 \n");
 
-  if (current() == new_ts) {printk("No switch: no more in ready.\n"); return;}
-  printk("=======================================\n");
+  if (current() == new_ts) return; // No switch: no more procs in ready queue.
   task_switch((union task_union *) new_ts);
+  chstat_ready_to_sys ();
 }
 
 

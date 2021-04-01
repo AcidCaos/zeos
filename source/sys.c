@@ -16,7 +16,7 @@
 
 
 int check_fd(int fd, int permissions) {
-  if (fd!=1) return -EBADF; /* EBADF: Bad file number */
+  if (fd!=1 && fd!=2) return -EBADF; /* EBADF: Bad file number */
   if (permissions!=ESCRIPTURA) return -EACCES; /* EACCES: Permission denied */
   return 0;
 }
@@ -75,6 +75,7 @@ int sys_fork() {
   if (list_empty( &freequeue )) return -ENOMEM;
   fill_ts = pop_task_struct( &freequeue );
   fill_tu = (union task_union*) fill_ts;
+  // init_stats(&fill_ts->stats); Done at the end.
   
   // (b) Copy task_struct to child ---------------------------* System Stack (private)
   // SYSTEM STACK: Copy parent's task_union to the child.
@@ -99,7 +100,6 @@ int sys_fork() {
   // (e) Copy User Data+Stack to child allocated pages -------* User Data + Stack (private)
   offset = PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
   unsigned long temp_offset = offset + NUM_PAG_DATA; // Després de les pags de Data, no s'usen aquelles pagines.
-  printk("copy user data+stack start\n");
   for (int i = 0; i < NUM_PAG_DATA; i++) {
     unsigned long num_frame_fisic = get_frame(TP_fill, offset + i);
     // TP parent: temp. entry to map to child's physical frame, so we can access and modify them.
@@ -113,7 +113,6 @@ int sys_fork() {
     //copy_data((void *) from, (void *) to, 1); // Accedeix a una entrada de la TP no allocatada.
     del_ss_pag(TP_pare, temp_offset + i); // Undo temp. mapping
   }
-  printk("copy user data+stack end\n");
   
   // (f) set System Code and Data TP entries to child --------* System Code + Data (shared)
   offset = (KERNEL_START >> 12); // Numero pag. lògica (i física) inici codi i dades kernel
@@ -136,6 +135,7 @@ int sys_fork() {
   PID = get_next_pid(); // sched.h
   fill_ts->PID = PID;
   fill_ts->state = ST_READY;
+  fill_ts->quantum = current()->quantum;
   
   /*
   // (j) Map parent's ebp to child's stack
@@ -157,7 +157,7 @@ int sys_fork() {
   fill_tu->stack[fill_ebp_index - 1] = 0xCAFE;
 
   // (l) Init Child process stats
-  // TODO
+  init_stats(&fill_ts->stats);
   
   // (m) Put child to READY queue
   push_task_struct (fill_ts, &readyqueue);
@@ -166,7 +166,6 @@ int sys_fork() {
 }
 
 void sys_exit() {
-  //printk("-------------------------> exit(1) \n");
   // (a) Free the physical frames (for Data+Stack)
   unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;
   page_table_entry* TP_proces = get_PT(current());
@@ -179,10 +178,9 @@ void sys_exit() {
   push_task_struct(current(), &freequeue);
   
   // (c) Schedule next process
-  //printk("-------------------------> exit(2) \n");
   sched_next_rr();
   
-  printk("exit(): This point should never be reached.\n");
+  errork("exit(): This point should never be reached.\n");
   return;
 }
 
@@ -197,7 +195,10 @@ int sys_write(int fd, char* buffer, int size) {
   if (size <= 0) return -22; /* EINVAL: Invalid argument */
 
   copy_from_user(buffer, sys_buffer, size); /* utils.c :: copy from user-buffer to system-buffer */
-  ret = sys_write_console(sys_buffer, size); /* devices.c */
+  if (fd == 1) // stdout
+  	ret = sys_write_console(sys_buffer, size); /* devices.c */
+  else if (fd == 2) // stderr
+  	ret = sys_write_console_error(sys_buffer, size); /* devices.c */
 
   return ret; /* ret = num. of bytes written */
 
@@ -205,6 +206,24 @@ int sys_write(int fd, char* buffer, int size) {
 
 int sys_gettime () {
   return zeos_ticks;
+}
+
+
+
+int sys_get_stats(int pid, struct stats *s) {
+  struct task_struct* t_s = NULL;
+  // Check if PID is correct
+  if (pid < 0) return -EINVAL; /* EINVAL: Invalid argument */
+  for (int i = 0; i < NR_TASKS; ++i) {
+    if (task[i].task.PID == pid) {
+      t_s = &task[i].task; 
+      break;
+    }
+  }
+  if (t_s == NULL) return -ESRCH; /* ESRCH: No such process */
+  // return stats
+  copy_to_user (&t_s->stats, s, sizeof(struct stats));
+  return 0;
 }
 
 

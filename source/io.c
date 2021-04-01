@@ -101,6 +101,10 @@ void printc (char c) {
   printc_attributes(c, 0xF, 0x0, 0); // white on black
 }
 
+void printc_error (char c) {
+  printc_attributes(c, 0xC, 0x0, 0); // light red on black
+}
+
 void printc_color (char c, Byte fg_color, Byte bg_color) {
   printc_attributes(c, fg_color, bg_color, 0);
 }
@@ -115,13 +119,13 @@ void printc_xy (Byte mx, Byte my, char c) {
 void printk (char *string) {
   int i;
   for (i = 0; string[i]; i++)
-    printc_attributes(string[i], 0x1, 0x7, 0); // blue on gray
+    printc_attributes(string[i], 0xA, 0x0, 0); // blue on gray
 }
 
 void errork (char *string) {
   int i;
   for (i = 0; string[i]; i++)
-    printc_attributes(string[i], 0xC, 0x8, 0); // light red on dark gray
+    printc_error(string[i]); // light red on dark gray
 }
 
 

@@ -72,6 +72,16 @@
       movb $0x20, %al; \
       outb %al, $0x20;
 
+#define USER2SYS \
+      push %eax; \
+      call chstat_user_to_sys; \
+      pop %eax;
+
+#define SYS2USER \
+      push %eax; \
+      call chstat_sys_to_user; \
+      pop %eax;
+
 ENTRY(writeMsr)
   push %ebp
   movl %esp, %ebp
@@ -85,15 +95,19 @@ ENTRY(writeMsr)
 
 ENTRY(clock_handler)
   SAVE_ALL
+  USER2SYS
   EOI // clock interrupt : EOI before the call to service routine !!
   call clock_routine
+  SYS2USER
   RESTORE_ALL
   iret
 
 
 ENTRY(keyboard_handler)
   SAVE_ALL
+  USER2SYS
   call keyboard_routine
+  SYS2USER
   RESTORE_ALL
   EOI
   iret
@@ -108,6 +122,7 @@ ENTRY(syscall_handler_sysenter)
 
   // Save Context
   SAVE_ALL
+  USER2SYS
 
   // 0 <= eax <= MAX_SYSCALL
   cmpl 	$0, %eax     
@@ -126,6 +141,7 @@ sysenter_invalid_eax:
 sysenter_fin:
   // Return value:  modify software context! (0x18 == 24, eax position in stack)
   movl %eax, 0x18(%esp) 
+  SYS2USER
   RESTORE_ALL
   // Return address
   movl (%esp), %edx
@@ -139,6 +155,7 @@ sysenter_fin:
 
 ENTRY(syscall_handler) // UNUSED (see interrupt.c) // PARAMETERS ARE NOT CORRECTLY PASSED TO THE syscall service routine
   SAVE_ALL
+  USER2SYS
 
   cmpl 	$0, %eax     // 0 <= eax <= MAX_SYSCALL
   jl	int_invalid_eax
@@ -153,6 +170,7 @@ int_invalid_eax:
 
 int_fin:
   movl %eax, 0x18(%esp) // Return value:  modify software context! (0x18 == 24, eax position in stack)
+  SYS2USER
   RESTORE_ALL
   EOI
   iret

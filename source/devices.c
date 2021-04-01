@@ -14,3 +14,13 @@ int sys_write_console(char *buffer,int size)
   
   return size;
 }
+
+int sys_write_console_error(char *buffer,int size)
+{
+  int i;
+  
+  for (i=0; i<size; i++)
+    printc_error(buffer[i]);
+  
+  return size;
+}

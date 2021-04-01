@@ -16,6 +16,7 @@ int gettime();
 int getpid();
 int fork();
 void exit();
+int get_stats(int pid, struct stats *s);
 
 // SYSCALLS: C wrappers
 void perror();
