@@ -236,7 +236,6 @@ int sys_get_stats(int pid, struct stats *s) {
 
 int sys_read(int fd, char* user_buff, int count) {
   
-  char sys_buffer [1024];
   int ret;
   //printk(" --> sys_read()\n");
   ret = check_fd(fd, LECTURA);

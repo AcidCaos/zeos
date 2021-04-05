@@ -44,6 +44,8 @@ LIBZEOS = -L . -l zeos
 USROBJ = \
 	libc.o \
 	wrappers.o \
+	adam/adam.o \
+	adam/adamlib.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -97,6 +99,12 @@ sys.o:sys.c $(INCLUDEDIR)/devices.h
 utils.o:utils.c $(INCLUDEDIR)/utils.h
 
 cyclic_buffer.o:cyclic_buffer.c $(INCLUDEDIR)/cyclic_buffer.h
+
+# ADAM
+adam.o:adam/adam.c $(INCLUDEDIR)/adam.h
+
+adamlib.o:adam/adamlib.c $(INCLUDEDIR)/adamlib.h
+
 
 
 system.o:system.c $(INCLUDEDIR)/hardware.h system.lds $(SYSOBJ) $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/system.h $(INCLUDEDIR)/sched.h $(INCLUDEDIR)/mm.h $(INCLUDEDIR)/io.h $(INCLUDEDIR)/mm_address.h 

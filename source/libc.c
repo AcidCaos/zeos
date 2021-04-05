@@ -116,6 +116,16 @@ char* strcpy(char* d, const char* s) {
   return ptr;
 }
 
+// String compare
+int strequ(const char* a, const char* b) {
+  while (*a && *b) {
+    if (*a != *b) return 0;
+    a++;
+    b++;
+  }
+  return (*a == *b);
+}
+
 
 
 

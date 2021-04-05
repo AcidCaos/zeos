@@ -82,6 +82,7 @@
       call chstat_sys_to_user; \
       pop %eax;
 
+
 ENTRY(writeMsr)
   push %ebp
   movl %esp, %ebp
@@ -107,9 +108,9 @@ ENTRY(keyboard_handler)
   SAVE_ALL
   USER2SYS
   call keyboard_routine
+  EOI
   SYS2USER
   RESTORE_ALL
-  EOI
   iret
 
 
@@ -171,8 +172,8 @@ int_invalid_eax:
 int_fin:
   movl %eax, 0x18(%esp) // Return value:  modify software context! (0x18 == 24, eax position in stack)
   SYS2USER
-  RESTORE_ALL
   EOI
+  RESTORE_ALL
   iret
 
 
