@@ -260,43 +260,51 @@ int needs_sched_rr(){
 }
 
 void update_process_state_rr(struct task_struct *t, struct list_head *dest){
-  
+  //printk(" --> update_process_state_rr()\n");
   if (t == idle_task) return;
   
-  if (current()->state != ST_RUN) { // if now is Ready/Free/Blocked, delete from that previous queue
+  //if (current()->state != ST_RUN) { // if now is Ready/Free/Blocked, delete from that previous queue
+  if (t->state != ST_RUN) {
     list_del(&(t->list_anchor));
   }
   if (dest != NULL) { // if next is not RUN, push to new queue
-    push_task_struct(current(), dest);
+    //push_task_struct(current(), dest);
+    push_task_struct(t, dest);
   } 
   else {  // if next is RUN: set state and remaining_ticks
-    current()->state = ST_RUN; 
+    //current()->state = ST_RUN; 
+    t->state = ST_RUN;
     remaining_ticks = get_quantum(t); 
   }
   if (dest == &readyqueue) {
-    current()->state = ST_READY;
-    chstat_sys_to_ready ();
+    t->state = ST_READY;
+    //current()->state = ST_READY;
+    chstat_sys_to_ready (); // TODO always applies to current(), should apply to 't'.
   }
   else if (dest == &blocked) 
-    current()->state = ST_BLOCKED;
+    //current()->state = ST_BLOCKED;
+    t->state = ST_BLOCKED;
+  //printk(" --> update_process_state_rr() EOF\n");
 }
 
 void sched_next_rr(){
-  
+  //printk(" --> sched_next_rr()\n");
   struct task_struct * new_ts;
   
   if (list_empty( &readyqueue )) {
     new_ts = idle_task;
+    // printk(".");
     //printk(" IDLE ! \n");
   }
   else new_ts = pop_task_struct( &readyqueue );
   
   new_ts->state=ST_RUN;
   remaining_ticks = get_quantum(new_ts);
-
+  
   if (current() == new_ts) return; // No switch: no more procs in ready queue.
   task_switch((union task_union *) new_ts);
   chstat_ready_to_sys ();
+  //printk(" --> sched_next_rr() EOF\n");
 }
 
 

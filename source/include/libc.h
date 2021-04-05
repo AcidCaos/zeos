@@ -18,6 +18,8 @@ int fork();
 void exit();
 int get_stats(int pid, struct stats *s);
 
+int read(int fd, char* user_buff, int count);
+
 // SYSCALLS: C wrappers
 void perror();
 

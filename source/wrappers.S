@@ -173,10 +173,8 @@ ENTRY(get_stats) // SYSENTER
 	push	%ebp
 	movl	%esp, %ebp
 	push	%ebx
-
 	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
 	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
-        movl	16(%ebp), %edx
 
 	movl	$35, %eax // syscall identifier
 	pushl 	%ecx // they are modified by sysenter!!
@@ -201,3 +199,34 @@ get_stats_end:
 	pop	%ebp
 	ret
 
+// int read(int fd, char* user_buff, int count);
+ENTRY(read) // SYSENTER
+	push	%ebp
+	movl	%esp, %ebp
+	push	%ebx
+	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
+	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
+        movl	16(%ebp), %edx
+
+	movl	$0x3, %eax // syscall identifier
+	pushl 	%ecx // they are modified by sysenter!!
+	pushl 	%edx
+	pushl 	$get_stats_next_instr // save return direction to user (instruction after sysenter)
+	// fake dynamic link: used by the handler in system mode
+	pushl	%ebp
+	movl	%esp, %ebp
+        sysenter
+read_next_instr:
+	popl 	%ebp //(popl) pops (the fake ebp)
+	addl 	$4, %esp // pops (@ instruction after sysenter)
+	popl 	%edx // recover saved values
+	popl 	%ecx
+	cmp 	$0, %eax
+	jge	get_stats_end // jump if %eax not negative
+	negl	%eax
+	movl	%eax, errno
+	movl	$-1, %eax
+read_end:
+        pop     %ebx
+	pop	%ebp
+	ret

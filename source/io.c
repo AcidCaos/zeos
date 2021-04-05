@@ -4,6 +4,7 @@
 
 #include <io.h>
 #include <types.h>
+#include <cyclic_buffer.h>
 
 /**************/
 /** Screen  ***/
@@ -119,7 +120,7 @@ void printc_xy (Byte mx, Byte my, char c) {
 void printk (char *string) {
   int i;
   for (i = 0; string[i]; i++)
-    printc_attributes(string[i], 0xA, 0x0, 0); // blue on gray
+    printc_attributes(string[i], 0xA, 0x0, 0); // green on black
 }
 
 void errork (char *string) {

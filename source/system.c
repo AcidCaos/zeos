@@ -11,6 +11,8 @@
 #include <mm.h>
 #include <io.h>
 #include <utils.h>
+#include <devices.h>
+
 //#include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
 
 #include <ticks.h>
@@ -92,6 +94,10 @@ int __attribute__((__section__(".text.main"))) main(void) {
   /* Initialize Memory */
   init_mm();
 
+  
+  printk("Initialize devices\n");
+  init_devices();
+
   /* Initialize an address space to be used for the monoprocess version of ZeOS */
   //monoprocess_init_addr_space(); /* TO BE DELETED WHEN THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS IS ADDED */
 
@@ -106,6 +112,7 @@ int __attribute__((__section__(".text.main"))) main(void) {
   init_task1();
 
   /* Move user code/data now (after the page table initialization) */
+  printk("Load user code and data\n");
   copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
    
   printk("Entering user mode...\n");

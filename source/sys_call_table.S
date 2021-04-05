@@ -5,7 +5,7 @@ ENTRY (sys_call_table)       // %eax
 	.long sys_ni_syscall // 0    not implemented
 	.long sys_exit       // 1    exit
 	.long sys_fork       // 2    fork
-	.long sys_ni_syscall // 3    not implemented
+	.long sys_read	     // 3    read
 	.long sys_write      // 4    write
 	.long sys_ni_syscall // 5    not implemented
 	.long sys_ni_syscall // 6    not implemented

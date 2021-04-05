@@ -14,10 +14,22 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
+#define STDIN_FDNUM 0
+#define STDOUT_FDNUM 1
+#define STDERR_FDNUM 2
+
 
 int check_fd(int fd, int permissions) {
-  if (fd!=1 && fd!=2) return -EBADF; /* EBADF: Bad file number */
-  if (permissions!=ESCRIPTURA) return -EACCES; /* EACCES: Permission denied */
+  if (permissions == ESCRIPTURA) {
+    if (fd!=STDOUT_FDNUM && fd!=STDERR_FDNUM) 
+      return -EBADF; /* EBADF: Bad file number */
+  }
+  else if (permissions == LECTURA) {
+    if (fd!=STDIN_FDNUM) 
+      return -EBADF; /* EBADF: Bad file number */
+  }
+  else 
+    return -EACCES; /* EACCES: Permission denied */
   return 0;
 }
 
@@ -192,22 +204,17 @@ int sys_write(int fd, char* buffer, int size) {
   ret = check_fd(fd, ESCRIPTURA);
   if (ret != 0) return ret;
   if (buffer == NULL) return -14; /* EFAULT: Bad address */
-  if (size <= 0) return -22; /* EINVAL: Invalid argument */
+  if (size <= 0 || size > 1024) return -22; /* EINVAL: Invalid argument */
 
   copy_from_user(buffer, sys_buffer, size); /* utils.c :: copy from user-buffer to system-buffer */
-  if (fd == 1) // stdout
+  if (fd == STDOUT_FDNUM) // stdout
   	ret = sys_write_console(sys_buffer, size); /* devices.c */
-  else if (fd == 2) // stderr
+  else if (fd == STDERR_FDNUM) // stderr
   	ret = sys_write_console_error(sys_buffer, size); /* devices.c */
 
   return ret; /* ret = num. of bytes written */
 
 }
-
-int sys_gettime () {
-  return zeos_ticks;
-}
-
 
 
 int sys_get_stats(int pid, struct stats *s) {
@@ -226,6 +233,27 @@ int sys_get_stats(int pid, struct stats *s) {
   return 0;
 }
 
+
+int sys_read(int fd, char* user_buff, int count) {
+  
+  char sys_buffer [1024];
+  int ret;
+  //printk(" --> sys_read()\n");
+  ret = check_fd(fd, LECTURA);
+  if (ret != 0) return ret;
+  if (user_buff == NULL) return -14; /* EFAULT: Bad address */
+  
+  if (count <= 0 || count > 1024) return -22; /* EINVAL: Invalid argument */
+  
+  if (fd == STDIN_FDNUM)
+    ret = sys_read_console(user_buff, count); /* devices.c */
+  //printk(" --> sys_read() EOF\n");
+  return ret;
+}
+
+int sys_gettime () {
+  return zeos_ticks;
+}
 
 
 

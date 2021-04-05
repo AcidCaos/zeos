@@ -10,6 +10,9 @@
 #include <ticks.h>
 #include <sched.h>
 
+#include <list.h>
+#include <devices.h>
+#include <cyclic_buffer.h>
 
 
 
@@ -130,23 +133,48 @@ void clock_routine() {
   return;
 }
 
+
+extern struct cyclic_buffer console_input; // devices.h
+
 void keyboard_routine() {
   unsigned char p = inb(0x60); // Keyboard data register port = 0x60
   unsigned char mkbrk = (p >> 7) & 0x01;
   unsigned char scancode = p & 0x7F;
-  if (mkbrk == 0x00){ //Make
+
+  //printk(" --> keyboard_routine()\n");
+  
+  if (mkbrk == 0x00){ //Make : key pressed
+
     char pr = char_map[scancode];
-    if (pr == '\0') pr = 'C';
-    // printc_xy(60, 0, pr);
-    char str[] = "Key pressed:  \n";
-    str[13] = pr;
-    printk((char*) &str);
-  }
-  else if (mkbrk == 0x01){ //Break
+    
+    if (pr == '\0') {
+      pr = '#';
+      //printk(" --> keyboard_routine() : Non-printable key pressed.\n");
+    } 
+    else { // is a printable character
+      printc_color(pr, 0x1, 0x0);
+      if (!cyclic_buffer_is_full(&console_input)){
+        //printk(" --> keyboard_routine() : char pushed to read buffer.\n");
+        cyclic_buffer_push (&console_input, pr);
+        
+        if (!list_empty(&read_queue)) { // TODO Sembla que no detecta bé: hi ha un però diu que està buida...
+          //printk(" --> keyboard_routine() : There's someone in the read_queue!\n");
+          struct task_struct* t_s_first = pop_task_struct(&read_queue);
+          update_process_state_rr(t_s_first, &readyqueue);
+        } else {
+          //printk(" --> keyboard_routine() : read_queue appears to be empty...\n");
+        }
+      }
+      else errork(" --> keyboard_routine() : Read buffer is full!\n");
+    }
+    
+
+  } else if (mkbrk == 0x01){ //Break: key unpressed
     
   } else {
-    printk("keyboard_routine(): This should never happen!");
+    errork(" --> keyboard_routine() : This should never happen!\n");
   }
+  //printk(" --> keyboard_routine() EOF\n");
   return;
 }
 

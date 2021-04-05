@@ -35,17 +35,7 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   print("The screen can scroll down...\n");
 
   // TEST 6
-  print("\n## -> TEST 6 : getpid()\n");
-  print("My PID is ");
-  itoa(getpid(), buff);
-  strcat(buff, "\n");
-  print(buff);
-  
-  // No forks please
-  // exit();
-
-  // TEST 7
-  print("\n## -> TEST 7 : fork() -> 4 processes {1,200,201,202} and get_stats(..)\n");
+  print("\n## -> TEST 6 : getpid() + fork() + get_stats(..)\n");
   
   char name[32];
   int ret, ret2;
@@ -92,10 +82,26 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   print("\n## -> TEST 7 : exit() all except Adam (father of all)\n");
   print("Only ADAM sais this. Others are dead. Now ADAM will exit(), and CPU goes idle\n");
   
+  // TEST 9
+  print("\n\n Trying to read from stdin...\n");
+  char in[256];
+  ret = read(0, in, 5); // Read 1 byte (1 character)
+  if (ret < 0) perror();
+
+  print("main() : Done! : ");
+  if (strlen(in) < 1) print("size of in[] < 1\n");
+  print(in);
+
+  print("ADAM ended.");
   exit();
   return 0; // Never reached
 }
 
+void input() {
+	char in[256];
+  int ret = read(0, in, 5); // Read 1 byte (1 character)
+  if (ret < 0) perror();
+}
 
 void print (char * s) {
 	int ret = write(1, s, strlen(s));

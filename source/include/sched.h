@@ -45,7 +45,6 @@ struct list_head readyqueue;
 struct list_head blocked;
 
 
-
 // FUNCIONS
 
 
