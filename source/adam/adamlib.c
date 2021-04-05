@@ -4,33 +4,6 @@
 #define MAX_READ_SIZE 256
 
 
-/*
-
-
-
-  int r;
-  print("\n\n Trying to read from stdin...\n");
-  char in[256];
-  r = read(0, in, 5); // Read 1 byte (1 character)
-  if (r < 0) perror();
-  
-  print("main() : Done! : ");
-  if (strlen(in) < 1) print("size of in[] < 1\n");
-  print(in);
-
-
-
-  print("\n\n Trying to read from stdin...\n");
-  r = read(0, in, 5); // Read 1 byte (1 character)
-  if (r < 0) perror();
-  
-  print("main() : Done! : ");
-  if (strlen(in) < 1) print("size of in[] < 1\n");
-  print(in);
-
-
-*/
-
 char readchar () {
   char one;
   read(0, &one, 1);
@@ -53,8 +26,12 @@ void input(char* in) {
       break;
     }
     
-    // TODO Si no posem això, peta el buffer // idk.why... algo dels registres a les syscalls?
+    
+    // TODO Si no posem això, peta el buffer (buff) 
+    // idk.why... algo dels registres a les syscalls? Algun registre es modifica?
+    // S'ha de mirar cada registre, com el de la @ del buffer i mirar què passa.
     itoa(strlen(buff), debug);
+    
     
     buff[count] = ch;
     

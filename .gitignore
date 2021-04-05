@@ -1,6 +1,8 @@
 source/bochsout.txt
 source/*.s
 source/*.o
+source/adam/*.o
+**.o
 source/*.out
 source/build
 source/bootsect
