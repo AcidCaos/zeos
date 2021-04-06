@@ -110,6 +110,21 @@ void printc_color (char c, Byte fg_color, Byte bg_color) {
   printc_attributes(c, fg_color, bg_color, 0);
 }
 
+void printc_color_xy (char c, Byte fg_color, Byte bg_color, Byte mx, Byte my) {
+  Byte cx = x, cy = y;
+  x=mx; y=my;
+  printc_attributes(c, fg_color, bg_color, 0);
+  x=cx; y=cy;
+}
+
+void print_text_cursor (char c) {
+  Byte fg_color = 0xE; // yellow
+  Byte bg_color = 0x0; // black
+  Byte cx = x, cy = y;
+  printc_attributes(c, fg_color, bg_color, 1);
+  x=cx; y=cy;
+}
+
 void printc_xy (Byte mx, Byte my, char c) {
   Byte cx = x, cy = y;
   x=mx; y=my;

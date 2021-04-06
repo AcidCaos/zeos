@@ -44,13 +44,16 @@ int sys_read_console (char* user_buff, int count) {
   //Avoid overflow. Space for the \0 at the end
   if (count >= CON_BUFFER_SIZE) count = CON_BUFFER_SIZE - 1;
   
+  // Show writting '_' cursor
+  print_text_cursor('_');
+  
   // Pop chars from console buffer
   while (i < count) {
     //printk(" --> sys_read_console() : Check if buffer is empty.\n");
     if (cyclic_buffer_is_empty(&console_input)) { // Nothing to read yet. Go to read queue
       //printk(" --> sys_read_console() : Nothing to read.\n");
       push_task_struct (current(), &read_queue);
-      sched_next_rr(); // TODO : problema: no surt d'aquí
+      sched_next_rr();
       //printk(" --> sys_read_console() : HERE!. Someone clicked a key??\n");
       continue; // re-start the loop
     }
@@ -58,7 +61,7 @@ int sys_read_console (char* user_buff, int count) {
     //printk(" --> sys_read_console() : New character to read.\n");
     //if (cyclic_buffer_is_empty(&console_input))
       //printk ("Empty! before pop \n");
-    char pop = cyclic_buffer_pop(&console_input); // TODO Això peta en l'últim caràcter... Revisar
+    char pop = cyclic_buffer_pop(&console_input);
     //printk ("OK pop \n");
     reading[i] = pop;
     //printk ("OK reading[i] \n");

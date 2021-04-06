@@ -170,7 +170,10 @@ void keyboard_routine() {
       //printk(" --> keyboard_routine() : Non-printable key pressed.\n");
     } 
     else { // is a printable character
-      printc_color(pr, 0x1, 0x0);
+      if (pr == '\n'){ // to delete the writting cursor
+        printc(' ');
+      }
+      printc_color(pr, 0xE, 0x0);
       if (!cyclic_buffer_is_full(&console_input)){
         //printk(" --> keyboard_routine() : char pushed to read buffer.\n");
         cyclic_buffer_push (&console_input, pr);

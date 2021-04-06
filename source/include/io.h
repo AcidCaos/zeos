@@ -16,6 +16,8 @@ void scroll ();
 void printc(char c);
 void printc_error(char c);
 void printc_color(char c, Byte fg_color, Byte bg_color);
+void printc_color_xy (char c, Byte fg_color, Byte bg_color, Byte mx, Byte my);
+void print_text_cursor (char c);
 void printc_xy(Byte x, Byte y, char c);
 void printk(char *string);
 void errork(char *string);
