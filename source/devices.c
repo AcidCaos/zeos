@@ -37,7 +37,7 @@ int sys_write_console_error (char *buffer, int size) {
 }
 
 int sys_read_console (char* user_buff, int count) {
-  //printk(" --> sys_read_console()\n");
+  
   char reading[CON_BUFFER_SIZE];
   int i = 0;
   
@@ -49,34 +49,21 @@ int sys_read_console (char* user_buff, int count) {
   
   // Pop chars from console buffer
   while (i < count) {
-    //printk(" --> sys_read_console() : Check if buffer is empty.\n");
     if (cyclic_buffer_is_empty(&console_input)) { // Nothing to read yet. Go to read queue
-      //printk(" --> sys_read_console() : Nothing to read.\n");
       push_task_struct (current(), &read_queue);
       sched_next_rr();
-      //printk(" --> sys_read_console() : HERE!. Someone clicked a key??\n");
-      continue; // re-start the loop
+      continue; // re-start the loop after returning from task_switch
     }
     //If here, means there is something to read in the buffer
-    //printk(" --> sys_read_console() : New character to read.\n");
-    //if (cyclic_buffer_is_empty(&console_input))
-      //printk ("Empty! before pop \n");
     char pop = cyclic_buffer_pop(&console_input);
-    //printk ("OK pop \n");
     reading[i] = pop;
-    //printk ("OK reading[i] \n");
     i++;
-    //printk ("OK end while \n");
   }
-  //printk(" --> sys_read_console() : Read all 'i' characters.\n");
-  reading[i] = '\0';
-  //printk(" ### SENDING BACK:");
-  //printk(reading);
-  // Finished: read 'count' chars
-  copy_to_user(reading, user_buff, i+1);
-  //printk(" ### USER BUFF:");
-  //printk(user_buff);
-  //printk(" --> sys_read_console() EOF\n");
+  
+  // reading[i] = '\0'; // No! Si lees en un solo char, se modificará el byte siguiente también con el /0.
+  
+  copy_to_user(reading, user_buff, i);
+  
   return i; // The number of bytes read is returned.
 }
 
