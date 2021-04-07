@@ -9,5 +9,6 @@ int execute(char * command);
 void help();
 void printstats();
 void test();
+void walls();
 
 #endif

@@ -28,12 +28,17 @@ int adam () {
 
 int execute(char * command) {
   
+  // Comandes Documentades
   if      (strequ(command, "h") || strequ(command, "help")) help();
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
   else if (strequ(command, "exit") || strequ(command, "quit")) close = 1;
   else if (strequ(command, ""));
+  // Easter-eggs i altres...
+  else if (strequ(command, "adam")) print("i eva!\n");
+  else if (strequ(command, "walls")) walls();
+  else if (strequ(command, "bye")) print("Sorry, this is not ftp... Try with 'quit'.\n");
   else    {
     print("Command '"); print(command); print("' does not exist.\n");
     return -1;
@@ -48,6 +53,7 @@ void help() {
   print("    ping - Answers 'pong'.\n");
   print("    test - Executes a series of tests for all syscalls.\n");
   print("   stats - Shows Adam process stats.\n");
+  print("   walls - A little game. (Don't touch the walls!)\n");
   print("    exit - Closes the shell.\n");
   print("\n");
 }
@@ -87,18 +93,19 @@ void test() {
   
   char name[32];
   int ret, ret2;
-  int lim = 400;
+  int lim;
   
+  lim = gettime();
   ret = fork();
-  strcpy(name, "ADAM!");
-  if (ret == 0) {
-  	strcpy(name, "F-111");
-  	lim = 140;
-  }
+  
+  if (ret == 0)       { strcpy(name, "F-111"); lim += 40;} // Primer fill
+  else                { strcpy(name, "ADAM!"); lim += 400;} // Pare (i.e. task1/adam)
+
   ret2 = fork();
   if (ret2 == 0) {
-  	if (ret == 0) {strcpy(name, "F-333"); lim = 240;}
-  	else {strcpy(name, "F-222"); lim = 90;}
+        lim = gettime();
+  	if (ret == 0) {strcpy(name, "F-333"); lim += 230;}  // Tercer fill (fill del primer fill)
+  	else          {strcpy(name, "F-222"); lim += 160;}   // Segon fill  (altre fill de task1/adam)
   }
   
   int my_pid = getpid();

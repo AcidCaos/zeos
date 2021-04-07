@@ -46,6 +46,7 @@ USROBJ = \
 	wrappers.o \
 	adam/adam.o \
 	adam/adamlib.o \
+        adam/walls.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -105,7 +106,7 @@ adam.o:adam/adam.c $(INCLUDEDIR)/adam.h
 
 adamlib.o:adam/adamlib.c $(INCLUDEDIR)/adamlib.h
 
-
+walls.o:adam/walls.c $(INCLUDEDIR)/adam.h
 
 system.o:system.c $(INCLUDEDIR)/hardware.h system.lds $(SYSOBJ) $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/system.h $(INCLUDEDIR)/sched.h $(INCLUDEDIR)/mm.h $(INCLUDEDIR)/io.h $(INCLUDEDIR)/mm_address.h 
 

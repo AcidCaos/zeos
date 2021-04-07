@@ -3,6 +3,7 @@
 
 
 // INPUT
+char readchar ();
 void input(char * in);
 
 // OUTPUT
