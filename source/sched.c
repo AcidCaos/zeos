@@ -94,7 +94,7 @@ void init_idle (void) {
   //  *  Return address
   tu->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) &cpu_idle;  // KERNEL_STACK_SIZE = 4Kbytes (1024 integers)
   //  *  Fake EBP
-  tu->stack[KERNEL_STACK_SIZE - 2] = 0;
+  tu->stack[KERNEL_STACK_SIZE - 2] = 0xF0CA;
   //  *  task_struct kernel_esp
   ts->kernel_esp = (unsigned long) & tu->stack[KERNEL_STACK_SIZE - 2];
 

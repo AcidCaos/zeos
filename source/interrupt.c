@@ -178,7 +178,7 @@ void keyboard_routine() {
         //printk(" --> keyboard_routine() : char pushed to read buffer.\n");
         cyclic_buffer_push (&console_input, pr);
         
-        if (!list_empty(&read_queue)) { // TODO Sembla que no detecta bé: hi ha un però diu que està buida...
+        if (!list_empty(&read_queue)) {
           //printk(" --> keyboard_routine() : There's someone in the read_queue!\n");
           struct task_struct* t_s_first = pop_task_struct(&read_queue);
           update_process_state_rr(t_s_first, &readyqueue);

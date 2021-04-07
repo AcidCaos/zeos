@@ -5,7 +5,7 @@
 
 
 char readchar () {
-  char one;
+  char one; //eax
   read(0, &one, 1);
   return one;
 }
@@ -14,23 +14,26 @@ char readchar () {
 void input(char* in) {
   char debug[128];
   char buff[MAX_READ_SIZE];
-  int count = 0;
+  int count = 0; //ebx
   
   while (count < MAX_READ_SIZE - 1) { // -1 pel \0 del final
     
     char ch = readchar();
     
     if (ch == '\n') {
-      buff[count] = '\0';
+      buff[count] = '\0'; //-0x108(ebp,ebx,1)
       strcpy(in, buff); // buff to in
       break;
     }
     
     
-    // TODO Si no posem això, peta el buffer (buff) 
+    // TODO Si no posem això, peta el buffer 
     // idk.why... algo dels registres a les syscalls? Algun registre es modifica?
     // S'ha de mirar cada registre, com el de la @ del buffer i mirar què passa.
-    itoa(strlen(buff), debug);
+    //itoa(strlen(buff), debug);
+    
+    // DEBUG INFO
+    //  (buff) -108(ebp) 11baa0;   (one) -109(ebp), 11ba9f esi
     
     
     buff[count] = ch;
