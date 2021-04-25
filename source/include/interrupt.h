@@ -9,6 +9,9 @@
 
 #define IDT_ENTRIES 256
 
+char char_map[];
+char key_is_pressed [256];
+
 extern Gate idt[IDT_ENTRIES];
 extern Register idtR;
 
@@ -19,6 +22,7 @@ void setIdt();
 
 
 void clock_routine();
+
 void keyboard_routine();
 
 

@@ -5,6 +5,7 @@
 #include <io.h>
 #include <types.h>
 #include <cyclic_buffer.h>
+#include <topbar.h>
 
 /**************/
 /** Screen  ***/
@@ -40,7 +41,7 @@ void printc_attributes (char c, int fg_color, int bg_color, int blink) {
     foreground : 0..F
 
   */
-  print_to_bochs(c);
+  //print_to_bochs(c);
   if (c=='\n') {
     x = 0;
     if (y + 1 >= NUM_ROWS) scroll();
@@ -84,9 +85,9 @@ void clear () {
   y = 0;
 }
 
-void scroll () {
+void scroll () { // if (topbar_enabled == 1) the TOP ROW should NOT be moved.
   // Move all up
-  for (int row = 1; row < NUM_ROWS; row++) {
+  for (int row = 1 + topbar_enabled; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
       screen[(row-1) * NUM_COLUMNS + col] = screen[row * NUM_COLUMNS + col];
     }
@@ -136,6 +137,15 @@ void printk (char *string) {
   int i;
   for (i = 0; string[i]; i++)
     printc_attributes(string[i], 0xA, 0x0, 0); // green on black
+}
+
+void printk_color_xy (char *string, Byte fg_color, Byte bg_color, Byte mx, Byte my) {
+  int i;
+  Byte cx = x, cy = y;
+  x=mx; y=my;
+  for (i = 0; string[i]; i++)
+    printc_attributes(string[i], fg_color, bg_color, 0);
+  x=cx; y=cy;
 }
 
 void errork (char *string) {

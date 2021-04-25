@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <topbar.h>
 #include <zeos_interrupt.h>
 #include <ticks.h>
 #include <sched.h>
@@ -19,34 +20,16 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
-/*
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
   '7','8','9','0','\'','¡','\0','\0',
   'q','w','e','r','t','y','u','i',
-  'o','p','`','+','\0','\0','a','s',
+  'o','p','`','+','\n','\0','a','s',
   'd','f','g','h','j','k','l','ñ',
   '\0','º','\0','ç','z','x','c','v',
   'b','n','m',',','.','-','\0','*',
-  '\0','\0','\0','\0','\0','\0','\0','\0',
-  '\0','\0','\0','\0','\0','\0','\0','7',
-  '8','9','-','4','5','6','+','1',
-  '2','3','0','\0','\0','\0','<','\0',
-  '\0','\0','\0','\0','\0','\0','\0','\0',
-  '\0','\0'
-};
-*/
-char char_map[] =
-{
-  '\0','\0','1','2','3','4','5','6',
-  '7','8','9','0','\'','¡','\0','\0',
-  'q','w','e','r','t','y','u','i',
-  'o','p','`','+','\n',0x11,'a','s',		// 0x11: CONTROL (Device Control 1)
-  'd','f','g','h','j','k','l','ñ',
-  '\0','º','\0','ç','z','x','c','v',
-  'b','n','m',',','.','-','\0','*',
-  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0',' ','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','7',
   '8','9','-','4','5','6','+','1',
   '2','3','0','\0','\0','\0','<','\0',
@@ -146,13 +129,15 @@ void setIdt() {
 
 void clock_routine() {
   zeos_ticks++;
-  zeos_show_clock();
+  update_topbar();
+  // zeos_show_clock();
   scheduler();
   return;
 }
 
 
 extern struct cyclic_buffer console_input; // devices.h
+
 
 void keyboard_routine() {
   unsigned char p = inb(0x60); // Keyboard data register port = 0x60
@@ -164,34 +149,36 @@ void keyboard_routine() {
   if (mkbrk == 0x00){ //Make : key pressed
 
     char pr = char_map[scancode];
+    key_is_pressed [scancode] = 1;
     
-    if (pr == '\0') {
+    if (pr == '\0') { // TODO 
       pr = '#';
-      //printk(" --> keyboard_routine() : Non-printable key pressed.\n");
-    } 
+    }
     else { // is a printable character
       if (pr == '\n'){ // to delete the writting cursor
         printc(' ');
       }
+      if ((key_is_pressed [0x2A] || key_is_pressed [0x36]) && (pr >= 'a' && pr <= 'z')) // Shift keys + lowercase
+        pr = pr - 'a' + 'A';
+        
       printc_color(pr, 0xE, 0x0);
       if (!cyclic_buffer_is_full(&console_input)){
-        //printk(" --> keyboard_routine() : char pushed to read buffer.\n");
         cyclic_buffer_push (&console_input, pr);
         
         if (!list_empty(&read_queue)) {
-          //printk(" --> keyboard_routine() : There's someone in the read_queue!\n");
           struct task_struct* t_s_first = pop_task_struct(&read_queue);
           update_process_state_rr(t_s_first, &readyqueue);
         } else {
-          //printk(" --> keyboard_routine() : read_queue appears to be empty...\n");
         }
       }
       else errork(" --> keyboard_routine() : Read buffer is full!\n");
     }
     
+    // Topbar update last key pressed
+    update_last_key_pressed();
 
   } else if (mkbrk == 0x01){ //Break: key unpressed
-    
+    key_is_pressed [scancode] = 0;
   } else {
     errork(" --> keyboard_routine() : This should never happen!\n");
   }

@@ -12,7 +12,6 @@ char readchar () {
 
 
 void input(char* in) {
-  char debug[128];
   char buff[MAX_READ_SIZE];
   int count = 0;
   
@@ -26,18 +25,9 @@ void input(char* in) {
       break;
     }
     
-    
-    // ! TODO Si no posem això, peta el buffer 
-    // idk.why... algo dels registres a les syscalls? Algun registre es modifica?
-    // S'ha de mirar cada registre, com el de la @ del buffer i mirar què passa.
     //itoa(strlen(buff), debug); // Fixed in devices.c ()
     
-    // DEBUG INFO
-    //  (buff) -108(ebp) 11baa0;   (one) -109(ebp), 11ba9f esi
-    
-    
     buff[count] = ch;
-    
     count++;
   }
 

@@ -26,6 +26,7 @@ SYSOBJ = \
 	entry.o \
 	sys_call_table.o \
 	io.o \
+	topbar.o \
 	sched.o \
 	sys.o \
 	mm.o \
@@ -87,6 +88,8 @@ interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCL
 
 io.o:io.c $(INCLUDEDIR)/io.h
 
+topbar.o:io.c $(INCLUDEDIR)/topbar.h
+
 sched.o:sched.c $(INCLUDEDIR)/sched.h
 
 stats.o:stats.c $(INCLUDEDIR)/stats.h
@@ -136,6 +139,10 @@ emuldbg: zeos.bin
 
 emuldbg_gui: zeos.bin
 	bochs_nogdb -q -f .bochsrc_gui
+
+test: zeos.bin
+	bochs_nogdb -q -f .bochsrc_test
+
 
 
 

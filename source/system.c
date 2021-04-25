@@ -10,6 +10,7 @@
 #include <sched.h>
 #include <mm.h>
 #include <io.h>
+#include <topbar.h>
 #include <utils.h>
 #include <devices.h>
 
@@ -114,7 +115,9 @@ int __attribute__((__section__(".text.main"))) main(void) {
   /* Move user code/data now (after the page table initialization) */
   printk("Load user code and data\n");
   copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
-   
+  
+  init_topbar();
+  
   printk("Entering user mode...\n");
   
   enable_int();
