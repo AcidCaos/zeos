@@ -10,10 +10,11 @@ int strlen(char *a);
 
 char fg_color = 0xE; // yellow
 char bg_color = 0x1; // blue
-const char head[] = "ZeOS";
-const char idle[] = "CPU IDLE";
-const char run[] = "RUNNING PID";
-const char ttynum[] = "TTY";
+char head[] = "ZeOS";
+char idle[] = "CPU IDLE";
+char run[] = "RUNNING PID";
+char ttynum[] = "TTY";
+char fps[] = "FPS";
 
 char pid[8];
 char last_key_pressed[32];
@@ -46,7 +47,7 @@ void update_topbar() {
   printk_color_xy("1", fg_color, bg_color, 41, 0); // TODO
   
   // Print Last pressed key
-  // update_last_key_pressed(); DONE by Keyboard Interrupt 
+  // update_last_key_pressed(); DONE by Keyboard Interrupt
   printk_color_xy(last_key_pressed, fg_color, bg_color, NUM_COLUMNS - strlen(last_key_pressed), 0);
   
 }
@@ -56,14 +57,24 @@ void update_last_key_pressed() { // Called at Keyboard Interrupt
   // ASCII Text key
   char ascii_key = 0;
   int SPACE = key_is_pressed [0x39];
+  int ENTER = key_is_pressed [0x1C];
   
   // Control keys
+  int ESC = key_is_pressed [0x01];
   int TAB = key_is_pressed [0x0F];
   int SHIFT_L = key_is_pressed [0x2A];
   int SHIFT_R = key_is_pressed [0x36];
   int CTRL_L = key_is_pressed [0x1D];
   int CTRL_R = key_is_pressed [0x46];
-  int control = TAB || SHIFT_L || SHIFT_R || CTRL_L || CTRL_R;
+  int ALT = key_is_pressed [0x38];
+  int UP = key_is_pressed [0x48];
+  int DOWN = key_is_pressed [0x50];
+  int LEFT = key_is_pressed [0x4B];
+  int RIGHT = key_is_pressed [0x4D];
+  int DEL = key_is_pressed [0x53];
+  int RET = key_is_pressed [0x0E];
+  
+  int control = ESC || TAB || SHIFT_L || SHIFT_R || CTRL_L || CTRL_R || ALT || UP || DOWN || LEFT || RIGHT || DEL || RET;
   
   
   for (int p = 0; p < 256; p++) {
@@ -71,7 +82,8 @@ void update_last_key_pressed() { // Called at Keyboard Interrupt
   }
   
   if ( ! control ) {
-    if (SPACE) strcpy(last_key_pressed, "[SPACE]");
+    if      (SPACE) strcpy(last_key_pressed, "[SPACE]");
+    else if (ENTER) strcpy(last_key_pressed, "[ENTER]");
     else {
       last_key_pressed[0] = ascii_key;
       last_key_pressed[1] = 0;
@@ -89,6 +101,14 @@ void update_last_key_pressed() { // Called at Keyboard Interrupt
       else strcpy(last_key_pressed, "[SHIFT]");
     }
     else if (CTRL_L || CTRL_R) strcpy(last_key_pressed, "[CTRL]");
+    else if (ALT) strcpy(last_key_pressed, "[ALT]");
+    else if (UP) strcpy(last_key_pressed, "[UP]");
+    else if (DOWN) strcpy(last_key_pressed, "[DOWN]");
+    else if (LEFT) strcpy(last_key_pressed, "[LEFT]");
+    else if (RIGHT) strcpy(last_key_pressed, "[RIGHT]");
+    else if (DEL) strcpy(last_key_pressed, "[DEL]");
+    else if (RET) strcpy(last_key_pressed, "[RET]");
+    else if (ESC) strcpy(last_key_pressed, "[ESC]");
   }
 }
 

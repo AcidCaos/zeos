@@ -9,7 +9,7 @@
 
 #define IDT_ENTRIES 256
 
-char char_map[];
+char char_map[98];
 char key_is_pressed [256];
 
 extern Gate idt[IDT_ENTRIES];

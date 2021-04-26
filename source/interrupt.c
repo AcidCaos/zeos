@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <tty.h>
 #include <topbar.h>
 #include <zeos_interrupt.h>
 #include <ticks.h>
@@ -150,18 +151,26 @@ void keyboard_routine() {
 
     char pr = char_map[scancode];
     key_is_pressed [scancode] = 1;
+
+    int TAB = key_is_pressed [0x0F];
+    int SHIFT_L = key_is_pressed [0x2A];
+    int SHIFT_R = key_is_pressed [0x36];
     
-    if (pr == '\0') { // TODO 
+    if (pr == '\0') {
+      
       pr = '#';
+      
     }
     else { // is a printable character
       if (pr == '\n'){ // to delete the writting cursor
         printc(' ');
       }
-      if ((key_is_pressed [0x2A] || key_is_pressed [0x36]) && (pr >= 'a' && pr <= 'z')) // Shift keys + lowercase
+      if ((SHIFT_L || SHIFT_R) && (pr >= 'a' && pr <= 'z')) // Shift keys + lowercase
         pr = pr - 'a' + 'A';
         
       printc_color(pr, 0xE, 0x0);
+      
+      // Reading buffer
       if (!cyclic_buffer_is_full(&console_input)){
         cyclic_buffer_push (&console_input, pr);
         
@@ -176,6 +185,11 @@ void keyboard_routine() {
     
     // Topbar update last key pressed
     update_last_key_pressed();
+    
+    // Check if Change of tty needed
+    if ((SHIFT_L || SHIFT_R) && TAB) 
+	show_next_tty ();
+
 
   } else if (mkbrk == 0x01){ //Break: key unpressed
     key_is_pressed [scancode] = 0;

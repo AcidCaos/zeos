@@ -5,7 +5,7 @@ int topbar_enabled;
 
 void init_topbar();
 void update_topbar();
-void set_key_pressed_topbar();
+void update_last_key_pressed();
 
 
 #endif

@@ -9,6 +9,7 @@
 #include <types.h>
 #include <mm_address.h>
 #include <stats.h>
+#include <tty.h>
 
 #define NR_TASKS      		10
 #define KERNEL_STACK_SIZE	1024

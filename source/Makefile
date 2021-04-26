@@ -26,6 +26,7 @@ SYSOBJ = \
 	entry.o \
 	sys_call_table.o \
 	io.o \
+	tty.o \
 	topbar.o \
 	sched.o \
 	sys.o \
@@ -86,9 +87,11 @@ user.o:user.c $(INCLUDEDIR)/libc.h
 
 interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h
 
+tty.o:tty.c $(INCLUDEDIR)/tty.h
+
 io.o:io.c $(INCLUDEDIR)/io.h
 
-topbar.o:io.c $(INCLUDEDIR)/topbar.h
+topbar.o:topbar.c $(INCLUDEDIR)/topbar.h
 
 sched.o:sched.c $(INCLUDEDIR)/sched.h
 
