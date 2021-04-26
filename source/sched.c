@@ -6,6 +6,7 @@
 #include <mm.h>
 #include <io.h>
 #include <stats.h>
+#include <devices.h>
 
 
 union task_union task[NR_TASKS]
@@ -120,6 +121,7 @@ void init_task1 (void) { //(Task1 is Adam: common antecessor of all processes)
   ts->quantum = INIT_QUANTUM;
   ts->state = ST_RUN;
   init_stats(&ts->stats);
+  init_std_io(&ts->taula_canals);
 
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);

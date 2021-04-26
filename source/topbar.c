@@ -2,6 +2,7 @@
 #include <io.h>
 #include <sched.h>
 #include <interrupt.h>
+#include <tty.h>
 
 char* strcpy(char* d, const char* s);
 char* strcat(char* str1, const char* str2);
@@ -16,8 +17,9 @@ char run[] = "RUNNING PID";
 char ttynum[] = "TTY";
 char fps[] = "FPS";
 
-char pid[8];
 char last_key_pressed[32];
+
+char buffer[128];
 
 // Num. Cols = 80; at io.c: 
 #define NUM_COLUMNS 80
@@ -27,6 +29,9 @@ void init_topbar() {
 }
 
 void update_topbar() {
+  
+  if (!topbar_enabled) return;
+  
   //Fill the row
   for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
   
@@ -38,13 +43,14 @@ void update_topbar() {
     printk_color_xy(idle, fg_color, bg_color, 8, 0);
   else {
     printk_color_xy(run, fg_color, bg_color, 8, 0);
-    itoa(current()->PID, pid);
-    printk_color_xy(pid, fg_color, bg_color, 20, 0);
+    itoa(current()->PID, buffer);
+    printk_color_xy(buffer, fg_color, bg_color, 20, 0);
   }
   
   // Print tty number
   printk_color_xy(ttynum, fg_color, bg_color, 37, 0);
-  printk_color_xy("1", fg_color, bg_color, 41, 0); // TODO
+  itoa(ttys_table.focus, buffer);
+  printk_color_xy(buffer, fg_color, bg_color, 41, 0); // TODO
   
   // Print Last pressed key
   // update_last_key_pressed(); DONE by Keyboard Interrupt

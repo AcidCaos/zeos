@@ -130,8 +130,12 @@ void setIdt() {
 
 void clock_routine() {
   zeos_ticks++;
+  
+  show_console();
+
   update_topbar();
   // zeos_show_clock();
+
   scheduler();
   return;
 }

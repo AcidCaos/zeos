@@ -17,7 +17,23 @@
 #define INIT_QUANTUM 		10  // Default Quantum (Quantum is inherited, and init is father of all)
 #define IDLE_QUANTUM 		5   // idle Quantum
 
+#define MAX_CHANNELS    12  // 10 + 2
+
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+
+// ENTRADA TAULA CANALS
+enum mode_t { RDONLY, WRONLY, RDWR };
+
+struct canal_entry {
+  int used;
+  enum mode_t mode;
+  void* device; // Sol ser un tty
+};
+
+// TAULA DE CANALS
+struct taula_canals {
+  struct canal_entry taula_canals [MAX_CHANNELS];
+};
 
 // TASK STRUCT
 struct task_struct {
@@ -25,10 +41,10 @@ struct task_struct {
   struct list_head list_anchor; /* List head : This is the anchor (ancla) in the list */
   page_table_entry * dir_pages_baseAddr; /* Directory base address */
   unsigned long kernel_esp;     /* Position in the stack when last in inner_task_switch */
-  int quantum;			/* Process total quantum */
+  int quantum;			    /* Process total quantum */
   enum state_t state;		/* State of the process */
   struct stats stats;		/* Process rr-policy related statistics */
-  
+  struct taula_canals taula_canals;  /* Taula de canals oberts del proc. */
 };
 
 // TASK UNION

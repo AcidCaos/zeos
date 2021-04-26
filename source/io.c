@@ -41,7 +41,9 @@ void printc_attributes (char c, int fg_color, int bg_color, int blink) {
     foreground : 0..F
 
   */
-  //print_to_bochs(c);
+  
+  // print_to_bochs(c);
+  
   if (c=='\n') {
     x = 0;
     if (y + 1 >= NUM_ROWS) scroll();

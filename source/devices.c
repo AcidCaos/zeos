@@ -5,125 +5,38 @@
 #include <sched.h>
 #include <cyclic_buffer.h>
 #include <devices.h>
+#include <tty.h>
 
 // Queue for blocked processes in I/O 
 // extern struct cyclic_buffer console_input; // devices.h
 
 
 void init_devices() {
+  // OUTPUT: tty
+  init_ttys_table();
+  
+  // INPUT: keyboard read buffer
   INIT_LIST_HEAD ( &read_queue );
   init_cyclic_buffer(&console_input);
 }
 
-
-int find_int(char* str, int* ptr) {
-  int r = 0;
-  int i = 0;
-  while (str[i] >= '0' && str[i] <= '9') { // implicit check of end of string
-    r = r * 10 + (int)(str[i] - '0');
-    i++;
+void init_std_io (struct taula_canals* tc) {
+  // Std in
+  tc->taula_canals[0].used = 1;
+  tc->taula_canals[0].mode = RDONLY;
+  tc->taula_canals[0].device = NULL;
+  // Std out
+  tc->taula_canals[1].used = 1;
+  tc->taula_canals[1].mode = WRONLY;
+  tc->taula_canals[1].device = & ttys_table.ttys[0];
+  // Std err
+  tc->taula_canals[2].used = 1;
+  tc->taula_canals[2].mode = WRONLY;
+  tc->taula_canals[2].device = & ttys_table.ttys[0];
+  
+  for (int i = 3; i < MAX_CHANNELS; i++) {
+    tc->taula_canals[i].used = 0;
   }
-  if (i == 0) return -1;
-  *ptr += i;
-  return r;
-}
-
-int sys_write_console (char *buffer, int size) {
-  int i;
-  
-  for (i=0; i<size; i++) {
-  
-    
-    // check for terminal escape codes
-    // ###############################
-    
-    while (buffer[i] == '\033') { // Escape character
-      
-      int ii, ii_x1, x1, x2;
-      ii = i + 1;
-      
-      while (buffer[ii] == ' ') ii++; // spaces
-      if (buffer[ii] == '[') ii++;
-      else break;
-      while (buffer[ii] == ' ') ii++; // spaces
-      ii_x1 = ii;
-      x1 = find_int(buffer + ii, &ii);
-      if (x1 < 0) break;
-      while (buffer[ii] == ' ') ii++; // spaces
-      if (buffer[ii] == ';') {
-        ii++;
-        while (buffer[ii] == ' ') ii++; // spaces
-        x2 = find_int(&buffer[ii], &ii);
-        if (x2 < 0) break;
-        while (buffer[ii] == ' ') ii++; // spaces
-        if (buffer[ii] == 0) break;
-        if (buffer[ii] == 'H' || buffer[ii] == 'f') {
-          ii++;
-          i = ii; // jump all escape code
-          
-          
-          set_current_cursor (x1, x2);
-          
-          
-          break;
-        } else break;
-      }
-      else if (buffer[ii] == 0) break;
-      else {
-        ii = ii_x1;
-        if (buffer[ii] >= '0' && buffer[ii] <= '9') {
-          x1 = (int)(buffer[ii] - '0');
-          ii++;
-        } else break;
-        while (buffer[ii] == ' ') ii++; // spaces
-        
-        if (buffer[ii] >= '0' && buffer[ii] <= '9') {
-          x2 = (int)(buffer[ii] - '0');
-          ii++;
-        }
-        else if (buffer[ii] == 'm') {
-          ii++;
-          i = ii; // jump all escape code
-          
-          
-          set_current_general_attr (x1);
-          
-          
-          break;
-        }
-        else break;
-        while (buffer[ii] == ' ') ii++; // spaces
-        if (buffer[ii] == 'm') {
-          ii++;
-          i = ii; // jump all escape code
-          
-          
-          if      (x1==3) set_current_fg_color(x2);
-          else if (x1==4) set_current_bg_color(x2);
-          
-          
-          break;
-        }
-        else break;
-      }
-    }
-      
-    // borrar caràcter actual ??
-    
-    // ###############################
-    
-    printc(buffer[i]);
-  }
-  return size;
-}
-
-int sys_write_console_error (char *buffer, int size) {
-  int i;
-  
-  for (i=0; i<size; i++)
-    printc_error(buffer[i]);
-  
-  return size;
 }
 
 int sys_read_console (char* user_buff, int count) {
@@ -156,8 +69,3 @@ int sys_read_console (char* user_buff, int count) {
   
   return i; // The number of bytes read is returned.
 }
-
-
-
-
-

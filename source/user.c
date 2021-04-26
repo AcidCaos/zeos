@@ -23,10 +23,10 @@ void terminal_codes() {
   // canvi posicio cursor
   print(">>\033 \x1b \n");
   print("[ 55>>\033 [ 55 \n");
-  print("[ 55 ; >>\033 [ 55 ;  \n");
+  print("[ 55 ; >>\033 [ 55 ;\n");
   print("[ 5 ; 6 >>\033 [ 5 ; 6  \n");
   print("[ 5 ; 6 a >>\033 [ 5 ; 6 a  \n");
-  print("!! [ 5 ; 6 f >>\033 [ 5 ; 6 f  \n");
+  print("!! [ 5 ; 6 f >>\033 [ 5 ; 6 ff  \n");
   print("!! [5;6H>>\033[5;6H \n");
   // general text attr
   print("[ 5 ; 6 >>\033 [ 5 ; 6 \n");

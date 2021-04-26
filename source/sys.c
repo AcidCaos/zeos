@@ -11,30 +11,23 @@
 #include <ticks.h>
 #include <errno.h>
 
-#define LECTURA 0
-#define ESCRIPTURA 1
-
 #define STDIN_FDNUM 0
 #define STDOUT_FDNUM 1
 #define STDERR_FDNUM 2
 
 
-int check_fd(int fd, int permissions) {
-  if (permissions == ESCRIPTURA) {
-    if (fd!=STDOUT_FDNUM && fd!=STDERR_FDNUM) 
-      return -EBADF; /* EBADF: Bad file number */
-  }
-  else if (permissions == LECTURA) {
-    if (fd!=STDIN_FDNUM) 
-      return -EBADF; /* EBADF: Bad file number */
-  }
-  else 
-    return -EACCES; /* EACCES: Permission denied */
+int check_fd (int fd, enum mode_t mode) {
+  
+  struct taula_canals* tc = &current()->taula_canals;
+  struct canal_entry* e = &tc->taula_canals[fd];
+  
+  if (! e->used) return -EBADF; // EBADF: Bad file number
+  if (! (e->mode == mode || e->mode == RDWR)) return -EACCES; // EACCES: Permission denied
   return 0;
 }
 
 int sys_ni_syscall() {
-	return -ENOSYS; /* ENOSYS: Function not implemented */
+	return -ENOSYS; // ENOSYS: Function not implemented
 }
 
 int sys_getpid() {
@@ -201,18 +194,24 @@ int sys_write(int fd, char* buffer, int size) {
   char sys_buffer [1024];
   int ret;
 
-  ret = check_fd(fd, ESCRIPTURA);
+  ret = check_fd(fd, WRONLY);
   if (ret != 0) return ret;
   if (buffer == NULL) return -14; /* EFAULT: Bad address */
   if (size <= 0 || size > 1024) return -22; /* EINVAL: Invalid argument */
-
+  
   copy_from_user(buffer, sys_buffer, size); /* utils.c :: copy from user-buffer to system-buffer */
-  if (fd == STDOUT_FDNUM) // stdout
-  	ret = sys_write_console(sys_buffer, size); /* devices.c */
+  
+  /*if (fd == STDOUT_FDNUM) // stdout
+  	ret = sys_write_console(sys_buffer, size); 
   else if (fd == STDERR_FDNUM) // stderr
-  	ret = sys_write_console_error(sys_buffer, size); /* devices.c */
-
-  return ret; /* ret = num. of bytes written */
+  	ret = sys_write_console_error(sys_buffer, size); 
+  */
+  
+  struct taula_canals* tc = &current()->taula_canals;
+  void* device = tc->taula_canals[fd].device; // TODO : add device types, check which driver-function to call
+  ret = sys_write_console(device, sys_buffer, size);
+  
+  return ret; // ret = num. of bytes written
 
 }
 
@@ -238,7 +237,7 @@ int sys_read(int fd, char* user_buff, int count) {
   
   int ret;
   //printk(" --> sys_read()\n");
-  ret = check_fd(fd, LECTURA);
+  ret = check_fd(fd, RDONLY);
   if (ret != 0) return ret;
   if (user_buff == NULL) return -14; /* EFAULT: Bad address */
   
