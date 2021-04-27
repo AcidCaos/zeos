@@ -45,6 +45,7 @@ struct ttys_table ttys_table;
 void init_tty (struct tty* tty);
 void init_ttys_table();
 struct tty* get_init_free_tty ();
+int decrement_use_count_tty (struct tty* tty);
 
 int sys_write_console(void* device, char *buffer, int size);
 //int sys_write_console_error(char *buffer, int size);

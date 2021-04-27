@@ -253,8 +253,20 @@ int sys_gettime () {
   return zeos_ticks;
 }
 
-int sys_close () {
-  return 0;
+int sys_close (int fd) {
+  
+  struct taula_canals* tc = & current()->taula_canals;
+  
+  // Check real file descriptor
+  if (! tc->taula_canals[fd].used) return -EBADF;	/* EBADF: Bad file number */
+  
+  // Delete from taula_canals
+  tc->taula_canals[fd].used = 0;
+  
+  // Decrement tty use
+  int ret = decrement_use_count_tty(tc->taula_canals[fd].device);
+  
+  return ret;
 }
 
 int sys_create_screen () {

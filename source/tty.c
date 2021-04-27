@@ -1,6 +1,7 @@
 #include <tty.h>
 #include <io.h>
 #include <topbar.h>
+#include <errno.h>
 
 
 //*********************
@@ -35,6 +36,7 @@ void init_ttys_table() {
 }
 
 struct tty* get_init_free_tty () {
+  
   for (int i = 0; i < MAX_TTYS; i++) {
     if ( ! ttys_table.use_count[i]) {
       ttys_table.use_count[i] = 1; // Set to used by 1
@@ -43,6 +45,17 @@ struct tty* get_init_free_tty () {
     }
   }
   return NULL;
+}
+
+int decrement_use_count_tty (struct tty* tty) {
+  
+  for (int i = 0; i < MAX_TTYS; i++) {
+    if ( & ttys_table.ttys[i] == tty) {
+      ttys_table.use_count[i]--;
+      return 0;
+    }
+  }
+  return -ENODEV;
 }
 
 //*********************

@@ -34,6 +34,8 @@ void perror() {
       strcpy(buffer, "Permission denied.\n"); break;
     case EFAULT: // 14
       strcpy(buffer, "Bad address.\n"); break;
+    case ENODEV: // 19
+      strcpy(buffer, "No such device.\n"); break;
     case EINVAL: // 22
       strcpy(buffer, "Invalid argument.\n"); break;
     case ENFILE: // 23
