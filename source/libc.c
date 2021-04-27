@@ -22,6 +22,8 @@ void perror() {
       strcpy(buffer, "No error.\n"); break;
     case ESRCH: // 3
       strcpy(buffer, "No such process.\n"); break;
+    case ENXIO: // 6
+      strcpy(buffer, "No such device or address.\n"); break;
     case EBADF: // 9
       strcpy(buffer, "Bad file number.\n"); break;
     case EAGAIN: // 11
@@ -34,6 +36,10 @@ void perror() {
       strcpy(buffer, "Bad address.\n"); break;
     case EINVAL: // 22
       strcpy(buffer, "Invalid argument.\n"); break;
+    case ENFILE: // 23
+      strcpy(buffer, "File table overflow.\n"); break;
+    case EMFILE: // 24
+      strcpy(buffer, "Too many open files.\n"); break;
     case ENOSYS: // 38
       strcpy(buffer, "Function not implemented.\n"); break;
     default:

@@ -9,7 +9,7 @@
 
 void init_tty (struct tty* tty) {
   tty->x = 0;
-  tty->y = 0;
+  tty->y = topbar_enabled;
   
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
@@ -26,7 +26,7 @@ void init_ttys_table() {
   // By default, there's only one tty
   
   ttys_table.focus = 0;
-  ttys_table.used[0] = 1;
+  ttys_table.use_count[0] = 1;
 
   struct tty* tty0 = & ttys_table.ttys[0];
   
@@ -34,6 +34,16 @@ void init_ttys_table() {
   
 }
 
+struct tty* get_init_free_tty () {
+  for (int i = 0; i < MAX_TTYS; i++) {
+    if ( ! ttys_table.use_count[i]) {
+      ttys_table.use_count[i] = 1; // Set to used by 1
+      init_tty(& ttys_table.ttys[i]); // Init attributes
+      return & ttys_table.ttys[i];
+    }
+  }
+  return NULL;
+}
 
 //*********************
 // SET TTY ATTRIBUTES
@@ -76,7 +86,17 @@ void set_current_general_attr (int n) {
 //*********************
 
 int show_next_tty () {// Shift +TAB pressed (called in interrupt.c)
-  printk("[Show next tty]\n");
+  int current_focus = ttys_table.focus;
+  for (int i = current_focus; i < MAX_TTYS + current_focus; i++) {
+    if (ttys_table.use_count[i % MAX_TTYS]) {
+      ttys_table.focus = i % MAX_TTYS;
+    }
+  }
+  return 0;
+}
+
+int force_show_tty (int i) {
+  if (ttys_table.use_count[i]) ttys_table.focus = i;
   return 0;
 }
 
@@ -260,6 +280,18 @@ void tty_printc (struct tty* tty, char c) {
   
   tty->x = x;
   tty->y = y;
+}
+
+void tty_printk (char* str) {
+  int i;
+  //struct tty* tty = & ttys_table.ttys[0];
+  struct tty* tty = & ttys_table.ttys[ttys_table.focus];
+  int old_col = tty->current_fg_color;
+  tty->current_fg_color = 0xA; // Green
+  for (i = 0; str[i]; i++){
+    tty_printc(tty, str[i]);
+  }
+  tty->current_fg_color = old_col;
 }
 
 void tty_scroll (struct tty* tty) { // if (topbar_enabled == 1) the TOP ROW should NOT be moved.

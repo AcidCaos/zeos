@@ -1,236 +1,89 @@
 #include <asm.h>
 
+/*
 
-//int write_deprecated(int fd, char *buffer, int size);
-ENTRY(write_deprecated) // uses INT. Raw write: no errno support
-	push	%ebp
-	movl	%esp, %ebp
-	push    %ebx
+.globl name; \
+  .type name, @function; \
+  .align 0; \
+  name: \
 
-	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
-	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
-        movl	16(%ebp), %edx
+*/
+#define SYSENTER_SYSCALL(name, syscall_id) \
+  ENTRY(name) \
+  \
+  push	%ebp; \
+  movl	%esp, %ebp; \
+  \
+  push  %ebx; \
+  push  %esi; \
+  push  %edi; \
+  \
+  movl	 8(%ebp), %ebx; \
+  movl	12(%ebp), %ecx; \
+  movl	16(%ebp), %edx; \
+  movl	20(%ebp), %esi; \
+  movl	24(%ebp), %edi; \
+  movl	28(%ebp), %ebp; \
+  \
+  movl	$ ## syscall_id , %eax; \
+  \
+  pushl %ecx; \
+  pushl %edx; \
+  pushl $sysenter_next_instr; \
+  \
+  pushl	%ebp; \
+  movl	%esp, %ebp; \
+  sysenter;
+  
+sysenter_next_instr:
+  popl 	%ebp        // pops the fake ebp
+  addl 	$4, %esp    // pops @ sysenter_next_instr
+  
+  popl 	%edx        // recover saved values
+  popl 	%ecx
+  
+  cmp 	$0, %eax
+  jge	sysenter_end  // jump if %eax not negative
+  
+  negl	%eax
+  movl	%eax, errno
+  movl	$-1, %eax
+  
+sysenter_end:
+  pop	%edi
+  pop	%esi
+  pop	%ebx
+  
+  pop	%ebp
+  ret
 
-	movl	$0x04, %eax
-        int	$0x80
-
-        pop     %ebx
-	pop	%ebp
-	ret
-
-
-//int write(int fd, char *buffer, int size);
-ENTRY(write) // uses SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	push    %ebx
-
-	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
-	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
-        movl	16(%ebp), %edx
-
-	movl	$0x04, %eax // syscall identifier
-
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-
-	pushl $write_next_instr // save return direction to user (instruction after sysenter)
-
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-
-write_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-
-	popl 	%edx // recover saved values
-	popl 	%ecx
-
-	cmp 	$0, %eax
-	jge	write_end // jump if %eax not negative
-
-write_error:
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-
-write_end:
-        pop     %ebx
-	pop	%ebp
-	ret
-
-
-//int gettime();
-ENTRY(gettime) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	movl	$0x0A, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$gettime_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-gettime_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	gettime_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-gettime_end:
-	pop	%ebp
-	ret
-
-
-//int getpid();
-ENTRY(getpid) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	movl	$0x14, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$getpid_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-getpid_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	getpid_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-getpid_end:
-	pop	%ebp
-	ret
-
-
-//int fork();
-ENTRY(fork) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	movl	$0x2, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$fork_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-fork_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	fork_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-fork_end:
-	pop	%ebp
-	ret
 
 //void exit();
-ENTRY(exit) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	movl	$0x1, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$exit_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-exit_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	exit_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-exit_end:
-	pop	%ebp
-	ret
+SYSENTER_SYSCALL(exit, 0x1)
 
-// int get_stats(int pid, struct stats *s);
-ENTRY(get_stats) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	push	%ebx
-	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
-	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
-
-	movl	$35, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$get_stats_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-get_stats_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	get_stats_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-get_stats_end:
-        pop     %ebx
-	pop	%ebp
-	ret
+//int fork();
+SYSENTER_SYSCALL(fork, 0x2)
 
 // int read(int fd, char* user_buff, int count);
-ENTRY(read) // SYSENTER
-	push	%ebp
-	movl	%esp, %ebp
-	push	%ebx
-        push	%esi
-        push	%edi
-	movl	8(%ebp), %ebx /*Exploits SAVE_ALL system stack structure.*/
-	movl	12(%ebp), %ecx /*Parameters passing from usermode to sys mode: through the registers.*/
-        movl	16(%ebp), %edx
+SYSENTER_SYSCALL(read, 0x3)
 
-	movl	$0x3, %eax // syscall identifier
-	pushl 	%ecx // they are modified by sysenter!!
-	pushl 	%edx
-	pushl 	$read_next_instr // save return direction to user (instruction after sysenter)
-	// fake dynamic link: used by the handler in system mode
-	pushl	%ebp
-	movl	%esp, %ebp
-        sysenter
-read_next_instr:
-	popl 	%ebp //(popl) pops (the fake ebp)
-	addl 	$4, %esp // pops (@ instruction after sysenter)
-	popl 	%edx // recover saved values
-	popl 	%ecx
-	cmp 	$0, %eax
-	jge	read_end // jump if %eax not negative
-	negl	%eax
-	movl	%eax, errno
-	movl	$-1, %eax
-read_end:
-        pop	%edi
-        pop	%esi
-        pop     %ebx
-	pop	%ebp
-	ret
+//int write(int fd, char *buffer, int size);
+SYSENTER_SYSCALL(write, 0x4)
+
+//int close(inf fd);
+SYSENTER_SYSCALL(close, 0x7)
+
+//int createScreen();
+SYSENTER_SYSCALL(createScreen, 0x8)
+
+//int gettime();
+SYSENTER_SYSCALL(gettime, 0x0A)
+
+//int getpid();
+SYSENTER_SYSCALL(getpid, 0x14)
+
+// int get_stats(int pid, struct stats *s);
+SYSENTER_SYSCALL(get_stats, 0x23)
+
+
+

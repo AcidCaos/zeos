@@ -32,7 +32,7 @@ struct tty {
 };
 
 struct ttys_table {
-  int used [MAX_TTYS];
+  int use_count [MAX_TTYS];
   //struct tty* ttys [MAX_TTYS]; // TODO : hauria de ser punters a direccions de memoria d.usuari protegides
   struct tty ttys [MAX_TTYS];
   int focus;
@@ -44,6 +44,7 @@ struct ttys_table ttys_table;
 
 void init_tty (struct tty* tty);
 void init_ttys_table();
+struct tty* get_init_free_tty ();
 
 int sys_write_console(void* device, char *buffer, int size);
 //int sys_write_console_error(char *buffer, int size);
@@ -58,6 +59,7 @@ int show_next_tty ();
 void show_console ();
 
 void tty_printc (struct tty* tty, char c);
+void tty_printk (char* str);
 void tty_scroll (struct tty* tty);
 
 

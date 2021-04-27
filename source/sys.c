@@ -253,6 +253,32 @@ int sys_gettime () {
   return zeos_ticks;
 }
 
+int sys_close () {
+  return 0;
+}
+
+int sys_create_screen () {
+  int fd;
+  
+  struct taula_canals* tc = & current()->taula_canals;
+  
+  // Check taula canals no plena
+  for (fd = 0; fd < MAX_CHANNELS; fd++) {
+    if (! tc->taula_canals[fd].used) break;
+  }
+  if (fd == MAX_CHANNELS) return -EMFILE; /* EMFILE: Too many open files */
+  
+  // Get unused tty
+  struct tty* tty = get_init_free_tty ();
+  if (tty == NULL) return -ENXIO; /* ENXIO: No such device or address */
+  
+  // Enllaçar fd amb el tty a la taula canals
+  tc->taula_canals[fd].used = 1;
+  tc->taula_canals[fd].mode = WRONLY;
+  tc->taula_canals[fd].device = tty;
+  
+  return fd;
+}
 
 
 

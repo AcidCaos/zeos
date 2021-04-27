@@ -7,7 +7,11 @@ void terminal_codes();
 
 int __attribute__ ((__section__(".text.main"))) main(void) {
   
-  terminal_codes();
+  
+  int newfd = createScreen();
+  write (newfd, "New", 3);
+  
+  // terminal_codes();
 
   adam(); // This is the adam shell. Check out 'adam' folder.
 

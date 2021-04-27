@@ -6,6 +6,7 @@
 #include <types.h>
 #include <cyclic_buffer.h>
 #include <topbar.h>
+#include <tty.h>
 
 /**************/
 /** Screen  ***/
@@ -136,9 +137,13 @@ void printc_xy (Byte mx, Byte my, char c) {
 }
 
 void printk (char *string) {
-  int i;
+
+  tty_printk (string); // Printk to tty0
+  
+  /*int i;
   for (i = 0; string[i]; i++)
     printc_attributes(string[i], 0xA, 0x0, 0); // green on black
+  */
 }
 
 void printk_color_xy (char *string, Byte fg_color, Byte bg_color, Byte mx, Byte my) {

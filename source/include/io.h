@@ -11,6 +11,7 @@
 /**********************/
 
 Byte inb (unsigned short port);
+void print_to_bochs (char c);
 
 void clear ();
 void scroll ();

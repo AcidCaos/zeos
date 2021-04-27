@@ -2,19 +2,19 @@
 #include <adam.h>
 #include <adamlib.h>
 
-int close;
+int must_close;
 
 int adam () {
   
   char head[] = "adam@zeos> ";
   char buffer[1024];
-  close = 0;
+  must_close = 0;
   
   print("\nAdam [Version 1.0]\n");
   print("A simple shell in ZeOS, the father of all processes.\n");
   print("Enter 'h' for help.\n\n");
   
-  while (close == 0) {
+  while (must_close == 0) {
     
     print(head);
     input(buffer); // Reads until [ENTER] is hit.
@@ -33,7 +33,7 @@ int execute(char * command) {
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
-  else if (strequ(command, "exit") || strequ(command, "quit")) close = 1;
+  else if (strequ(command, "exit") || strequ(command, "quit")) must_close = 1;
   else if (strequ(command, ""));
   // Easter-eggs i altres...
   else if (strequ(command, "adam")) print("i eva!\n");
