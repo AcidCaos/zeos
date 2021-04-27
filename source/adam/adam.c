@@ -147,20 +147,42 @@ void test() {
 
 void new_adam_tty() {
   char buff[32];
-  int ret;
-  ret = fork();
-  if (ret == 0) { // Fill
-    close(1); // Tancar STDIN
-    ret = createScreen();
-    if (ret != 1) {
-      close(ret); // Per si no sobreescriu STDIN
+  int ret_f, ret_0, ret_1, ret_2;
+  ret_f = fork();
+  if (ret_f == 0) { // Fill
+    
+    // Substituir STDOUT
+    close(1);
+    ret_1 = createScreen();
+    if (ret_1 != 1) {
+      close(ret_1);
       exit();
     }
+    
+    // Substituir STDIN
+    close(0);
+    ret_0 = open_tty_ro (ret_1);
+    if (ret_0 != 0) {
+      close(ret_0);
+      close(ret_1);
+      exit();
+    }
+    
+    /*// Substituir STDERR
+    close(2);
+    ret_2 = createScreen();
+    if (ret_2 != 2) {
+      close(ret_0);
+      close(ret_1);
+      close(ret_2);
+      exit();
+    }*/
+    
     adam();
-    setFocus(ret);
+    //setFocus(ret_1);
     exit();
   }
-  itoa (ret, buff);
+  itoa (ret_f, buff);
   print("Done! New Adam (PID ");
   strcat(buff, ")\n");
   print(buff);

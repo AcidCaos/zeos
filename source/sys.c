@@ -218,21 +218,46 @@ int sys_get_stats(int pid, struct stats *s) {
 int sys_read(int fd, char* user_buff, int count) {
   
   int ret;
-  //printk(" --> sys_read()\n");
+  
   ret = check_fd(fd, RDONLY);
   if (ret != 0) return ret;
   if (user_buff == NULL) return -14; /* EFAULT: Bad address */
   
-  if (count <= 0 || count > 1024) return -22; /* EINVAL: Invalid argument */
+  if (count <= 0 || count >= 1024) return -22; /* EINVAL: Invalid argument */
   
-  if (fd == STDIN_FDNUM)
-    ret = sys_read_console(user_buff, count); /* devices.c */
-  //printk(" --> sys_read() EOF\n");
+  struct taula_canals* tc = &current()->taula_canals;
+  void* device = tc->taula_canals[fd].device;
+  ret = sys_read_console(device, user_buff, count); /* devices.c */
+  
   return ret;
 }
 
 int sys_gettime () {
   return zeos_ticks;
+}
+
+int sys_open_tty_ro (int tty_fd) {
+  
+  int fd; // FD for Read
+  
+  struct taula_canals* tc = & current()->taula_canals;
+  
+  // Check taula canals no plena
+  for (fd = 0; fd < MAX_CHANNELS; fd++) {
+    if (! tc->taula_canals[fd].used) break;
+  }
+  if (fd == MAX_CHANNELS) return -EMFILE; /* EMFILE: Too many open files */
+  
+  // Get tty_fd's tty
+  struct tty* tty = tc->taula_canals[tty_fd].device;
+  if (tty == NULL) return -ENXIO; /* ENXIO: No such device or address */
+  
+  // Enllaçar fd amb el tty a la taula canals
+  tc->taula_canals[fd].used = 1;
+  tc->taula_canals[fd].mode = RDONLY;
+  tc->taula_canals[fd].device = tty;
+  
+  return fd;
 }
 
 int sys_close (int fd) {

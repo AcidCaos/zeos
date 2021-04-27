@@ -7,7 +7,7 @@ ENTRY (sys_call_table)       // %eax
 	.long sys_fork       // 2    fork
 	.long sys_read	     // 3    read
 	.long sys_write      // 4    write
-	.long sys_ni_syscall // 5    not implemented
+	.long sys_open_tty_ro// 5    open_tty_ro
 	.long sys_ni_syscall // 6    not implemented
 	.long sys_close      // 7    close
 	.long sys_create_screen // 8    createScreen

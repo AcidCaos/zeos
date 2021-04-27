@@ -70,6 +70,9 @@ SYSENTER_SYSCALL(read, 0x3)
 //int write(int fd, char *buffer, int size);
 SYSENTER_SYSCALL(write, 0x4)
 
+//int open_tty_ro (int tty_fd)
+SYSENTER_SYSCALL(open_tty_ro, 0x5)
+
 //int close(int fd);
 SYSENTER_SYSCALL(close, 0x7)
 

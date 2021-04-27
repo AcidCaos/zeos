@@ -16,8 +16,11 @@ int getpid();
 int fork();
 void exit();
 int get_stats(int pid, struct stats *s);
+
+int open_tty_ro (int tty_fd);
 int close(int fd);
 int createScreen();
+
 int setFocus(int fd);
 int read(int fd, char* user_buff, int count);
 

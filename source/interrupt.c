@@ -172,23 +172,16 @@ void keyboard_routine() {
       if ((SHIFT_L || SHIFT_R) && (pr >= 'a' && pr <= 'z')) // Shift keys + lowercase
         pr = pr - 'a' + 'A';
         
-      printc_color(pr, 0xE, 0x0);
+      //printc_color(pr, 0xE, 0x0);
+      printc(pr);
       
       // Reading buffer
-      if (!cyclic_buffer_is_full(&console_input)){
-        cyclic_buffer_push (&console_input, pr);
-        
-        if (!list_empty(&read_queue)) {
-          struct task_struct* t_s_first = pop_task_struct(&read_queue);
-          update_process_state_rr(t_s_first, &readyqueue);
-        } else {
-        }
-      }
-      else errork(" --> keyboard_routine() : Read buffer is full!\n");
+      push_to_focus_read_buffer (pr);
+      
     }
     
     // Topbar update last key pressed
-    update_last_key_pressed();
+    update_last_key_pressed ();
     
     // Check if Change of tty needed
     if ((SHIFT_L || SHIFT_R) && TAB) 

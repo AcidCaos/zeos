@@ -103,7 +103,8 @@ void scroll () { // if (topbar_enabled == 1) the TOP ROW should NOT be moved.
 }
 
 void printc (char c) {
-  printc_attributes(c, 0xF, 0x0, 0); // white on black
+  tty_printc(& ttys_table.ttys[ttys_table.focus], c);
+  //printc_attributes(c, 0xF, 0x0, 0); // white on black
 }
 
 void printc_error (char c) {
@@ -122,11 +123,12 @@ void printc_color_xy (char c, Byte fg_color, Byte bg_color, Byte mx, Byte my) {
 }
 
 void print_text_cursor () {
-  Byte fg_color = 0xE; // yellow
+  /*Byte fg_color = 0xE; // yellow
   Byte bg_color = 0x0; // black
   Byte cx = x, cy = y;
   printc_attributes(219, fg_color, bg_color, 1);
-  x=cx; y=cy;
+  x=cx; y=cy;*/
+  
 }
 
 void printc_xy (Byte mx, Byte my, char c) {

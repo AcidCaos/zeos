@@ -3,30 +3,38 @@
 #include <topbar.h>
 #include <errno.h>
 #include <sched.h>
-
+#include <cyclic_buffer.h>
+#include <utils.h>
 
 //*********************
 // INICIALITZACIONS
 //*********************
 
 void init_tty (struct tty* tty) {
+  // General
+  tty->pid_maker = current()->PID;
+  
+  // Output
   tty->x = 0;
   tty->y = topbar_enabled;
   
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
   
-  tty->pid_maker = current()->PID;
-  
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
       tty->buffer[row * NUM_COLUMNS + col] = 0x0F00;
     }
   }
+  
+  // Input
+  INIT_LIST_HEAD ( & tty->read_queue );
+  init_cyclic_buffer( & tty->console_input );
+  
 }
 
 void init_ttys_table() {
-  
+
   // By default, there's only one tty
   
   ttys_table.focus = 0;
@@ -171,7 +179,7 @@ int find_int(char* str, int* ptr) {
   return r;
 }
 
-int sys_write_console (void* device, char* buffer, int size) {
+int sys_write_console (struct tty* tty, char* buffer, int size) {
   int i;
   
   for (i=0; i<size; i++) {
@@ -261,7 +269,7 @@ int sys_write_console (void* device, char* buffer, int size) {
     // printc(buffer[i]);
     
     // Write al buffer del tty
-    tty_printc (device, buffer[i]);
+    tty_printc (tty, buffer[i]);
     
   }
   return size;
@@ -316,8 +324,8 @@ void tty_printc (struct tty* tty, char c) {
 
 void tty_printk (char* str) {
   int i;
-  //struct tty* tty = & ttys_table.ttys[0];
-  struct tty* tty = & ttys_table.ttys[ttys_table.focus];
+  struct tty* tty = & ttys_table.ttys[0];
+  //struct tty* tty = & ttys_table.ttys[ttys_table.focus];
   int old_col = tty->current_fg_color;
   tty->current_fg_color = 0xA; // Green
   for (i = 0; str[i]; i++){
@@ -339,6 +347,57 @@ void tty_scroll (struct tty* tty) { // if (topbar_enabled == 1) the TOP ROW shou
   for (int col = 0; col < NUM_COLUMNS; col++) {
     tty->buffer[(NUM_ROWS-1) * NUM_COLUMNS + col] = ch;
   }
+}
+
+void push_to_focus_read_buffer (char pr) {
+  struct tty* tty = & ttys_table.ttys[ttys_table.focus];
+  
+  if (!cyclic_buffer_is_full( & tty->console_input)){
+    cyclic_buffer_push ( & tty->console_input, pr);
+    
+    if (!list_empty( & tty->read_queue)) {
+      struct task_struct* t_s_first = pop_task_struct( & tty->read_queue);
+      update_process_state_rr(t_s_first, & readyqueue);
+    } else {
+    }
+  }
+  else errork(" --> keyboard_routine() : Read buffer is full!\n");
+  
+}
+
+//*********************
+//   READ from TTY
+//*********************
+
+int sys_read_console (struct tty* tty, char* user_buff, int count) {
+  
+  char reading[CON_BUFFER_SIZE];
+  int i = 0;
+  
+  //Avoid overflow. Space for the \0 at the end
+  if (count >= CON_BUFFER_SIZE) count = CON_BUFFER_SIZE - 1;
+  
+  // Show writting '_' cursor
+  print_text_cursor();
+  
+  // Pop chars from console buffer
+  while (i < count) {
+    if (cyclic_buffer_is_empty( & tty->console_input)) { // Nothing to read yet. Go to read queue
+      push_task_struct (current(), & tty->read_queue);
+      sched_next_rr();
+      continue; // re-start the loop after returning from task_switch
+    }
+    //If here, means there is something to read in the buffer
+    char pop = cyclic_buffer_pop( & tty->console_input);
+    reading[i] = pop;
+    i++;
+  }
+  
+  // reading[i] = '\0'; // No! Si lees en un solo char, se modificará el byte siguiente también con el /0.
+  
+  copy_to_user(reading, user_buff, i);
+  
+  return i; // The number of bytes read is returned.
 }
 
 
