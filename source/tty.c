@@ -2,6 +2,7 @@
 #include <io.h>
 #include <topbar.h>
 #include <errno.h>
+#include <sched.h>
 
 
 //*********************
@@ -14,6 +15,8 @@ void init_tty (struct tty* tty) {
   
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
+  
+  tty->pid_maker = current()->PID;
   
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
@@ -33,6 +36,9 @@ void init_ttys_table() {
   
   init_tty (tty0);
   
+  // Force its creator to be task1
+  tty0->pid_maker = 1;
+  
 }
 
 struct tty* get_init_free_tty () {
@@ -47,6 +53,17 @@ struct tty* get_init_free_tty () {
   return NULL;
 }
 
+int increment_use_count_tty (struct tty* tty) {
+  
+  for (int i = 0; i < MAX_TTYS; i++) {
+    if ( & ttys_table.ttys[i] == tty) {
+      ttys_table.use_count[i]++;
+      return 0;
+    }
+  }
+  return -ENODEV; // No such device
+}
+
 int decrement_use_count_tty (struct tty* tty) {
   
   for (int i = 0; i < MAX_TTYS; i++) {
@@ -55,7 +72,7 @@ int decrement_use_count_tty (struct tty* tty) {
       return 0;
     }
   }
-  return -ENODEV;
+  return -ENODEV; // No such device
 }
 
 //*********************
@@ -100,9 +117,10 @@ void set_current_general_attr (int n) {
 
 int show_next_tty () {// Shift +TAB pressed (called in interrupt.c)
   int current_focus = ttys_table.focus;
-  for (int i = current_focus; i < MAX_TTYS + current_focus; i++) {
+  for (int i = current_focus + 1; i < MAX_TTYS + current_focus; i++) {
     if (ttys_table.use_count[i % MAX_TTYS]) {
       ttys_table.focus = i % MAX_TTYS;
+      return 0;
     }
   }
   return 0;
@@ -110,6 +128,7 @@ int show_next_tty () {// Shift +TAB pressed (called in interrupt.c)
 
 int force_show_tty (int i) {
   if (ttys_table.use_count[i]) ttys_table.focus = i;
+  else return -ENODEV; // ENODEV: No such device
   return 0;
 }
 
@@ -125,7 +144,7 @@ void show_console () { // Called in clock_routine . TODO : FPS
   Word* tty_buff = tty_focus->buffer;
   Word* screen = (Word *) 0xb8000;
   
-  for (int row = 0; row < NUM_ROWS; row++) {
+  for (int row = topbar_enabled; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
       
       // printc_xy (Byte mx, Byte my, char c);

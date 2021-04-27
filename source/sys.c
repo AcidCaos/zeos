@@ -141,6 +141,7 @@ int sys_fork() {
   fill_ts->PID = PID;
   fill_ts->state = ST_READY;
   fill_ts->quantum = current()->quantum;
+  copy_taula_canals (& current()->taula_canals, & fill_ts->taula_canals);
   
   /*
   // (j) Map parent's ebp to child's stack
@@ -168,25 +169,6 @@ int sys_fork() {
   push_task_struct (fill_ts, &readyqueue);
   
   return PID;
-}
-
-void sys_exit() {
-  // (a) Free the physical frames (for Data+Stack)
-  unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;
-  page_table_entry* TP_proces = get_PT(current());
-  for (int i = 0; i < NUM_PAG_DATA; i++) {
-    free_frame(get_frame(TP_proces, offset + i));
-    del_ss_pag(TP_proces, offset + i);
-  }
-  
-  // (b) Free task struct
-  push_task_struct(current(), &freequeue);
-  
-  // (c) Schedule next process
-  sched_next_rr();
-  
-  errork("exit(): This point should never be reached.\n");
-  return;
 }
 
 int sys_write(int fd, char* buffer, int size) {
@@ -269,6 +251,31 @@ int sys_close (int fd) {
   return ret;
 }
 
+void sys_exit() {
+  // (z) Close all opened files (tty's really)
+  struct taula_canals* tc = & current()->taula_canals;
+  for (int i = 0; i < MAX_CHANNELS; i++) {
+    if (tc->taula_canals[i].used) sys_close(i);
+  }
+  
+  // (a) Free the physical frames (for Data+Stack)
+  unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;
+  page_table_entry* TP_proces = get_PT(current());
+  for (int i = 0; i < NUM_PAG_DATA; i++) {
+    free_frame(get_frame(TP_proces, offset + i));
+    del_ss_pag(TP_proces, offset + i);
+  }
+  
+  // (b) Free task struct
+  push_task_struct(current(), &freequeue);
+  
+  // (c) Schedule next process
+  sched_next_rr();
+  
+  errork("exit(): This point should never be reached.\n");
+  return;
+}
+
 int sys_create_screen () {
   int fd;
   
@@ -292,8 +299,21 @@ int sys_create_screen () {
   return fd;
 }
 
-
-
-
+int sys_set_focus(int fd) {
+  
+  struct taula_canals* tc = & current()->taula_canals;
+  struct tty* tty = tc->taula_canals[fd].device;
+  
+  if (! tc->taula_canals[fd].used) return -ENODEV; // No such device
+  if (! (tc->taula_canals[fd].mode == WRONLY)) return -ENOTTY; // Not a typewriter
+  
+  for (int i = 0; i < MAX_TTYS; i++) {
+    if ( & ttys_table.ttys[i] == tty) {
+      
+      return force_show_tty(i);
+    }
+  }
+  return -ENODEV;
+}
 
 

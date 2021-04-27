@@ -10,14 +10,16 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
   
   int newfd = createScreen();
   write (newfd, "New", 3);
+  setFocus(newfd);
   
+  int newfd2 = createScreen();
+  write (newfd2, "New2", 4);
   
   // terminal_codes();
 
   adam(); // This is the adam shell. Check out 'adam' folder.
 
   close (newfd);
-  print("Adam ended.\n");
 
   exit();
 

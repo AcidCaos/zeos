@@ -42,6 +42,8 @@ void perror() {
       strcpy(buffer, "File table overflow.\n"); break;
     case EMFILE: // 24
       strcpy(buffer, "Too many open files.\n"); break;
+    case ENOTTY: // 25
+      strcpy(buffer, "Not a typewriter.\n"); break;
     case ENOSYS: // 38
       strcpy(buffer, "Function not implemented.\n"); break;
     default:

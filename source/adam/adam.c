@@ -22,6 +22,9 @@ int adam () {
     execute(buffer);
     
   }
+  
+  print("Adam ended.\n");
+  
   return 0;
 }
 
@@ -34,6 +37,7 @@ int execute(char * command) {
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
   else if (strequ(command, "exit") || strequ(command, "quit")) must_close = 1;
+  else if (strequ(command, "eva")) new_adam_tty();
   else if (strequ(command, ""));
   // Easter-eggs i altres...
   else if (strequ(command, "adam")) print("i eva!\n");
@@ -55,6 +59,7 @@ void help() {
   print("   stats - Shows Adam process stats.\n");
   print("   walls - A little game. (Don't touch the walls!)\n");
   print("    exit - Closes the shell.\n");
+  print("     eva - New Adam to another TTY.\n");
   print("\n");
 }
 
@@ -139,3 +144,27 @@ void test() {
 
   
 }
+
+void new_adam_tty() {
+  char buff[32];
+  int ret;
+  ret = fork();
+  if (ret == 0) { // Fill
+    close(1); // Tancar STDIN
+    ret = createScreen();
+    if (ret != 1) {
+      close(ret); // Per si no sobreescriu STDIN
+      exit();
+    }
+    adam();
+    setFocus(ret);
+    exit();
+  }
+  itoa (ret, buff);
+  print("Done! New Adam (PID ");
+  strcat(buff, ")\n");
+  print(buff);
+}
+
+
+

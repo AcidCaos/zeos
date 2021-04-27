@@ -11,7 +11,7 @@ ENTRY (sys_call_table)       // %eax
 	.long sys_ni_syscall // 6    not implemented
 	.long sys_close      // 7    close
 	.long sys_create_screen // 8    createScreen
-	.long sys_ni_syscall // 9    not implemented
+	.long sys_set_focus  // 9    setFocus
 	.long sys_gettime    // 10   gettime
 	.long sys_ni_syscall // 11   not implemented
 	.long sys_ni_syscall // 12   not implemented

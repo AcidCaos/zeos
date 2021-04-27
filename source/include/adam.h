@@ -9,6 +9,9 @@ int execute(char * command);
 void help();
 void printstats();
 void test();
+void new_adam_tty();
+
+// Walls
 void walls();
 
 #endif

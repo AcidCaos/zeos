@@ -9,15 +9,16 @@
 #include <stats.h>
 
 
-// SYSCALLS: Assembler Wrappers
-int write(int fd, char *buffer, int size); // uses sysenter
-int write_deprecated(int fd, char *buffer, int size); // uses int
+// (Sysenter) SYSCALLS: Assembler Wrappers
+int write(int fd, char *buffer, int size);
 int gettime();
 int getpid();
 int fork();
 void exit();
 int get_stats(int pid, struct stats *s);
-
+int close(int fd);
+int createScreen();
+int setFocus(int fd);
 int read(int fd, char* user_buff, int count);
 
 // SYSCALLS: C wrappers

@@ -70,11 +70,14 @@ SYSENTER_SYSCALL(read, 0x3)
 //int write(int fd, char *buffer, int size);
 SYSENTER_SYSCALL(write, 0x4)
 
-//int close(inf fd);
+//int close(int fd);
 SYSENTER_SYSCALL(close, 0x7)
 
 //int createScreen();
 SYSENTER_SYSCALL(createScreen, 0x8)
+
+//int setFocus(int fd);
+SYSENTER_SYSCALL(setFocus, 0x9)
 
 //int gettime();
 SYSENTER_SYSCALL(gettime, 0x0A)

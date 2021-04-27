@@ -28,6 +28,7 @@ struct tty {
   int current_fg_color, current_bg_color; // Current colors
   int current_blinking; // Current character blinks
   Word buffer [NUM_COLUMNS * NUM_ROWS]; // Screen buffer
+  int pid_maker;
   
 };
 
@@ -45,6 +46,7 @@ struct ttys_table ttys_table;
 void init_tty (struct tty* tty);
 void init_ttys_table();
 struct tty* get_init_free_tty ();
+int increment_use_count_tty (struct tty* tty);
 int decrement_use_count_tty (struct tty* tty);
 
 int sys_write_console(void* device, char *buffer, int size);
@@ -56,6 +58,7 @@ void set_current_fg_color (int c);
 void set_current_general_attr (int n);
 
 int show_next_tty ();
+int force_show_tty (int i);
 
 void show_console ();
 

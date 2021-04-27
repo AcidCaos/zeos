@@ -20,7 +20,18 @@ void init_devices() {
   init_cyclic_buffer(&console_input);
 }
 
-void init_std_io (struct taula_canals* tc) {
+void copy_taula_canals (struct taula_canals* from, struct taula_canals* to) {
+  for (int i = 0; i < MAX_CHANNELS; i++) {
+    to->taula_canals[i].used = from->taula_canals[i].used;
+    if (! from->taula_canals[i].used) continue;
+    to->taula_canals[i].mode = from->taula_canals[i].mode;
+    to->taula_canals[i].device = from->taula_canals[i].device;
+
+    increment_use_count_tty (to->taula_canals[i].device);
+  }
+}
+
+void init_task1_std_io (struct taula_canals* tc) {
   // Std in
   tc->taula_canals[0].used = 1;
   tc->taula_canals[0].mode = RDONLY;
