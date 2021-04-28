@@ -62,10 +62,10 @@ int sys_write_console(struct tty* tty, char *buffer, int size);
 //int sys_write_console_error(char *buffer, int size);
 int sys_read_console (struct tty* tty, char* user_buff, int count);
 
-void set_current_cursor (int x, int y);
-void set_current_bg_color (int c);
-void set_current_fg_color (int c);
-void set_current_general_attr (int n);
+void set_tty_cursor (struct tty* tty, int x, int y);
+void set_tty_bg_color (struct tty* tty, int c);
+void set_tty_fg_color (struct tty* tty, int c);
+void set_tty_general_attr (struct tty* tty, int n);
 
 int show_next_tty ();
 int force_show_tty (int i);

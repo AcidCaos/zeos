@@ -236,6 +236,10 @@ int sys_gettime () {
   return zeos_ticks;
 }
 
+//
+// Takes a fd of an already opened tty device, and opens it as a Read device. 
+// (Useful for reading from a newly opened new tty screen with createScreen() )
+//
 int sys_open_tty_ro (int tty_fd) {
   
   int fd; // FD for Read

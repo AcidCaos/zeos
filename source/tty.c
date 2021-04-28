@@ -18,6 +18,7 @@ void init_tty (struct tty* tty) {
   tty->x = 0;
   tty->y = topbar_enabled;
   
+  tty->current_blinking = 0;
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
   
@@ -87,35 +88,45 @@ int decrement_use_count_tty (struct tty* tty) {
 // SET TTY ATTRIBUTES
 //*********************
 
-void set_current_cursor (int x, int y) {
-  /*printk("CURSOR");
-  printk(" -> x=");
-  char aux[] = "_"; aux[0] = '0' + x;
-  printk(aux);
-  printk(" ; y=");
-  char aux2[] = "_"; aux2[0] = '0' + y;
-  printk(aux2);*/
+void set_tty_cursor (struct tty* tty, int x, int y) {
+  
+  if (x < topbar_enabled || x >= NUM_ROWS || y < 0 || x >= NUM_COLUMNS)  return;
+  
+  tty->x = x;
+  tty->y = y;
+  
 }
 
-void set_current_bg_color (int c) {
-  /*printk("BG_COLOR");
-  printk(" -> color=");
-  char aux[] = "_"; aux[0] = '0' + (char) c;
-  printk(aux);*/
+void set_tty_bg_color (struct tty* tty, int c) {
+
+  //background : 0..7
+  if (c < 0 || c > 7) return;
+  
+  tty->current_bg_color = c;
+  
 }
 
-void set_current_fg_color (int c) {
-  /*printk("FG_COLOR");
-  printk(" -> color=");
-  char aux[] = "_"; aux[0] = '0' + (char) c;
-  printk(aux);*/
+void set_tty_fg_color (struct tty* tty, int c) {
+
+  //foreground : 0..F
+  if (c < 0 || c > 0xF) return;
+  
+  tty->current_fg_color = c;
+  
 }
 
-void set_current_general_attr (int n) {
-  /*printk("GENERAL_ATTR");
-  printk(" -> n=");
-  char aux[] = "_"; aux[0] = '0' + n;
-  printk(aux);*/
+void set_tty_general_attr (struct tty* tty, int n) {
+  
+  if (n == 0) {
+    tty->current_blinking = 0;
+    tty->current_fg_color = 0xF; // White
+    tty->current_bg_color = 0x0; // Black
+  }
+  
+  else if (n == 5) tty->current_blinking = 1;
+  
+  else if (n == 9) tty->buffer[(tty->y * NUM_COLUMNS + tty->x)] = 0x00;
+  
 }
 
 
@@ -213,10 +224,10 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
           i = ii; // jump all escape code
           
           
-          set_current_cursor (x1, x2);
+          set_tty_cursor (tty, x1, x2);
           
           
-          break;
+          continue;
         } else break;
       }
       else if (buffer[ii] == 0) break;
@@ -228,19 +239,24 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
         } else break;
         while (buffer[ii] == ' ') ii++; // spaces
         
-        if (buffer[ii] >= '0' && buffer[ii] <= '9') {
+        /*if (buffer[ii] >= '0' && buffer[ii] <= '9') {
           x2 = (int)(buffer[ii] - '0');
           ii++;
+        }*/
+        
+        if (buffer[ii] >= '0' && buffer[ii] <= '9') {
+          x2 = find_int(&buffer[ii], &ii);
         }
+        
         else if (buffer[ii] == 'm') {
           ii++;
           i = ii; // jump all escape code
           
           
-          set_current_general_attr (x1);
+          set_tty_general_attr (tty, x1);
           
           
-          break;
+          continue;
         }
         else break;
         while (buffer[ii] == ' ') ii++; // spaces
@@ -249,11 +265,11 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
           i = ii; // jump all escape code
           
           
-          if      (x1==3) set_current_fg_color(x2);
-          else if (x1==4) set_current_bg_color(x2);
+          if      (x1==3) set_tty_fg_color(tty, x2);
+          else if (x1==4) set_tty_bg_color(tty, x2);
           
           
-          break;
+          continue;
         }
         else break;
       }

@@ -8,6 +8,33 @@
 
 #include <stats.h>
 
+#define TEXT_BLACK \033[30m
+#define TEXT_BLUE \033[31m
+#define TEXT_GREEN \033[32m
+#define TEXT_CYAN \033[33m
+#define TEXT_RED \033[34m
+#define TEXT_MAGENTA \033[35m
+#define TEXT_BROWN \033[36m
+#define TEXT_LIGHT_GRAY \033[37m
+#define TEXT_DARK_GRAY \033[38m
+#define TEXT_LIGHT_BLUE \033[39m
+#define TEXT_LIGHT_GREEN \033[310m
+#define TEXT_LIGHT_CYAN \033[311m
+#define TEXT_LIGHT_RED \033[312m
+#define TEXT_LIGHT_MAGENTA \033[313m
+#define TEXT_YELLOW \033[314m
+#define TEXT_WHITE \033[315m
+
+#define BG_BLACK \033[40m
+#define BG_BLUE \033[41m
+#define BG_GREEN \033[42m
+#define BG_CYAN \033[43m
+#define BG_RED \033[44m
+#define BG_MAGENTA \033[45m
+#define BG_BROWN \033[46m
+#define BG_LIGHT_GRAY \033[47m
+#define BG_DARK_GRAY \033[48m
+#define BG_LIGHT_BLUE \033[49m
 
 // (Sysenter) SYSCALLS: Assembler Wrappers
 int write(int fd, char *buffer, int size);

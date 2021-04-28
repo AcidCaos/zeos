@@ -6,13 +6,13 @@ int must_close;
 
 int adam () {
   
-  char head[] = "adam@zeos> ";
+  char head[] = "\033[314madam\033[315m@\033[311mzeos\033[0m> ";
   char buffer[1024];
   must_close = 0;
   
-  print("\nAdam [Version 1.0]\n");
-  print("A simple shell in ZeOS, the father of all processes.\n");
-  print("Enter 'h' for help.\n\n");
+  print("\n\033[313mAdam [Version 1.0]\n");
+  print("\033[35mA simple shell in ZeOS, the father of all processes.\n");
+  print("Enter 'h' for help.\033[0m\n\n");
   
   while (must_close == 0) {
     
@@ -53,14 +53,16 @@ int execute(char * command) {
 void help() {
   print("Adam is a simple shell in ZeOS.\n");
   print("List of accepted commands:\n\n");
-  print("       h - Shows this help message.\n");
-  print("    ping - Answers 'pong'.\n");
-  print("    test - Executes a series of tests for all syscalls.\n");
-  print("   stats - Shows Adam process stats.\n");
-  print("   walls - A little game. (Don't touch the walls!)\n");
-  print("    exit - Closes the shell.\n");
-  print("     eva - New Adam to another TTY.\n");
-  print("\n");
+  print("\033[312m       h \033[0m-\033[37m Shows this help message.\n");
+  print("\033[312m    ping \033[0m-\033[37m Answers 'pong'.\n");
+  print("\033[312m    test \033[0m-\033[37m Executes a series of tests for all syscalls.\n");
+  print("\033[312m   stats \033[0m-\033[37m Shows Adam process stats.\n");
+  print("\033[312m   walls \033[0m-\033[37m A little game. (Don't touch the walls!)\n");
+  print("\033[312m    exit \033[0m-\033[37m Closes the shell.\n");
+  print("\033[312m     eva \033[0m-\033[37m New Adam to another TTY.\n");
+  print("\033[0m\n");
+
+  print("\033[2;2H\033[9m\n");
 }
 
 void printstats() {
@@ -168,9 +170,9 @@ void new_adam_tty() {
       exit();
     }
     
-    /*// Substituir STDERR
-    close(2);
-    ret_2 = createScreen();
+    // Substituir STDERR
+    /*close(2);
+    ret_2 = createScreen(); // must make anoter custom open for stderr...
     if (ret_2 != 2) {
       close(ret_0);
       close(ret_1);
