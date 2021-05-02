@@ -155,7 +155,7 @@ void init_sched () {
 
   if (&task[NR_TASKS-1].task != list_head_to_task_struct(&task[NR_TASKS-1].task.list_anchor)) {
     // This should never happen
-    errork ("Error: list_head_to_task_struct() is not working properly.\n");
+    printk ("Error: list_head_to_task_struct() is not working properly.\n");
   }
 
 }

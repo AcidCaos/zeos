@@ -14,4 +14,4 @@ debugger_log: -
 
 port_e9_hack: enabled=1
 
-clock: sync=realtime
+# clock: sync=realtime

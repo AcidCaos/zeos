@@ -53,7 +53,7 @@ go:	mov	di,#0x4000-12	! 0x4000 is arbitrary value >= length of
 	mov	sp,di
 
 !
-! ZEUS: 3. Imprimimos el mensaje "Carregant"
+! ZEUS: 3. Imprimimos el mensaje "Loading"
 !
 
 	mov	ah,#0x03	! read cursor pos

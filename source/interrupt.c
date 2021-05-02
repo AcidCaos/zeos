@@ -134,8 +134,7 @@ void clock_routine() {
   show_console();
 
   update_topbar();
-  // zeos_show_clock();
-
+  
   scheduler();
   return;
 }
@@ -191,7 +190,7 @@ void keyboard_routine() {
   } else if (mkbrk == 0x01){ //Break: key unpressed
     key_is_pressed [scancode] = 0;
   } else {
-    errork(" --> keyboard_routine() : This should never happen!\n");
+    printk(" --> keyboard_routine() : This should never happen!\n");
   }
   //printk(" --> keyboard_routine() EOF\n");
   return;

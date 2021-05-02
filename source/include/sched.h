@@ -72,7 +72,7 @@ struct list_head blocked;
 /* Funció pel sys_fork */
 int get_next_pid ();
 
-/* Funcions per les qües */
+/* Funcions per les queues */
 
 struct task_struct* pop_task_struct (struct list_head* queue);
 void push_task_struct (struct task_struct*, struct list_head* queue);

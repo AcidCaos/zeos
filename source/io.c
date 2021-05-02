@@ -28,22 +28,6 @@ void print_to_bochs (char c) {
 }
 
 void printc_attributes (char c, int fg_color, int bg_color, int blink) {
-  /*
-    0 - black          8 - dark gray
-    1 - blue           9 - light blue
-    2 - green          A - light green
-    3 - cyan           B - light cyan
-    4 - red            C - light red
-    5 - magenta        D - light magenta
-    6 - brown          E - yellow
-    7 - light gray     F - white
-
-    background : 0..7
-    foreground : 0..F
-
-  */
-  
-  // print_to_bochs(c);
   
   if (c=='\n') {
     x = 0;
@@ -107,30 +91,6 @@ void printc (char c) {
   //printc_attributes(c, 0xF, 0x0, 0); // white on black
 }
 
-void printc_error (char c) {
-  printc_attributes(c, 0xC, 0x0, 0); // light red on black
-}
-
-void printc_color (char c, Byte fg_color, Byte bg_color) {
-  printc_attributes(c, fg_color, bg_color, 0);
-}
-
-void printc_color_xy (char c, Byte fg_color, Byte bg_color, Byte mx, Byte my) {
-  Byte cx = x, cy = y;
-  x=mx; y=my;
-  printc_attributes(c, fg_color, bg_color, 0);
-  x=cx; y=cy;
-}
-
-void print_text_cursor () {
-  /*Byte fg_color = 0xE; // yellow
-  Byte bg_color = 0x0; // black
-  Byte cx = x, cy = y;
-  printc_attributes(219, fg_color, bg_color, 1);
-  x=cx; y=cy;*/
-  
-}
-
 void printc_xy (Byte mx, Byte my, char c) {
   Byte cx = x, cy = y;
   x=mx; y=my;
@@ -140,7 +100,7 @@ void printc_xy (Byte mx, Byte my, char c) {
 
 void printk (char *string) {
 
-  tty_printk (string); // Printk to tty0
+  tty_printk (string); // Printk to tty device
   
   /*int i;
   for (i = 0; string[i]; i++)
@@ -156,11 +116,11 @@ void printk_color_xy (char *string, Byte fg_color, Byte bg_color, Byte mx, Byte 
     printc_attributes(string[i], fg_color, bg_color, 0);
   x=cx; y=cy;
 }
-
+/*
 void errork (char *string) {
   int i;
   for (i = 0; string[i]; i++)
     printc_error(string[i]); // light red on dark gray
-}
+}*/
 
 

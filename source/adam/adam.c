@@ -10,8 +10,8 @@ int adam () {
   char buffer[1024];
   must_close = 0;
   
-  print("\n\033[313mAdam [Version 1.0]\n");
-  print("\033[35mA simple shell in ZeOS, the father of all processes.\n");
+  print("\n\033[313mAdam [Version 2.0]\n");
+  print("\033[35mA simple shell in ZeOS, and the father of all processes.\n");
   print("Enter 'h' for help.\033[0m\n\n");
   
   while (must_close == 0) {
@@ -23,7 +23,7 @@ int adam () {
     
   }
   
-  print("Adam ended.\n");
+  //print("Adam ended.\033[0m\n");
   
   return 0;
 }
@@ -36,9 +36,9 @@ int execute(char * command) {
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
-  else if (strequ(command, "exit") || strequ(command, "quit")) must_close = 1;
+  else if (strequ(command, "exit") || strequ(command, "quit")) /*exit(); //*/must_close = 1;
   else if (strequ(command, "eva")) new_adam_tty();
-  else if (strequ(command, ""));
+  else if (strequ(command, "")) return 0;
   // Easter-eggs i altres...
   else if (strequ(command, "adam")) print("i eva!\n");
   else if (strequ(command, "walls")) walls();
@@ -51,7 +51,6 @@ int execute(char * command) {
 }
 
 void help() {
-  print("Adam is a simple shell in ZeOS.\n");
   print("List of accepted commands:\n\n");
   print("\033[312m       h \033[0m-\033[37m Shows this help message.\n");
   print("\033[312m    ping \033[0m-\033[37m Answers 'pong'.\n");
@@ -62,7 +61,6 @@ void help() {
   print("\033[312m     eva \033[0m-\033[37m New Adam to another TTY.\n");
   print("\033[0m\n");
 
-  print("\033[2;2H\033[9m\n");
 }
 
 void printstats() {
@@ -149,7 +147,7 @@ void test() {
 
 void new_adam_tty() {
   char buff[32];
-  int ret_f, ret_0, ret_1, ret_2;
+  int ret_f, ret_0, ret_1; //, ret_2;
   ret_f = fork();
   if (ret_f == 0) { // Fill
     

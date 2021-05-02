@@ -199,6 +199,9 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
     // check for terminal escape codes
     // ###############################
     
+    // TODO :
+    // Escape codes do not behave well when they are the last character of the buffer, before \0.
+    
     while (buffer[i] == '\033') { // Escape character
       
       int ii, ii_x1, x1, x2;
@@ -239,12 +242,12 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
         } else break;
         while (buffer[ii] == ' ') ii++; // spaces
         
-        /*if (buffer[ii] >= '0' && buffer[ii] <= '9') {
+        /*if (buffer[ii] >= '0' && buffer[ii] <= '9') { // 8 text colors
           x2 = (int)(buffer[ii] - '0');
           ii++;
         }*/
         
-        if (buffer[ii] >= '0' && buffer[ii] <= '9') {
+        if (buffer[ii] >= '0' && buffer[ii] <= '9') {  // 16 text colors
           x2 = find_int(&buffer[ii], &ii);
         }
         
@@ -275,15 +278,6 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
       }
     }
       
-    // borrar caràcter actual ??
-    
-    // ###############################
-    
-    
-    // TODO 
-    // /// Cutre: write directe a pantalla
-    // printc(buffer[i]);
-    
     // Write al buffer del tty
     tty_printc (tty, buffer[i]);
     
@@ -291,38 +285,25 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
   return size;
 }
 
-/*int sys_write_console_error (char *buffer, int size) { // TODO 
-  int i;
-  
-  for (i=0; i<size; i++)
-    printc_error(buffer[i]);
-  
-  return size;
-}*/
-
 
 //*********************
 // TTY print to BUFFER
 //*********************
 
-
-void tty_printc (struct tty* tty, char c) {
-  print_to_bochs(c);
-
+void tty_printc_attributes (struct tty* tty, char c, int fg_color, int bg_color, int blink) {
+  
   int x = tty->x;
   int y = tty->y;
-
+  
   if (c=='\n') {
     x = 0;
     if (y + 1 >= NUM_ROWS) tty_scroll(tty);
     else y = y + 1;
   }
   else {
-    
-    Word fg_attr = (Word) (tty->current_fg_color & 0x000F);
-    Word bg_attr = (Word) (tty->current_bg_color & 0x0007) << 4;
-    Word blink_attr = (Word) (tty->current_blinking & 0x0001) << 7;
-    
+    Word fg_attr = (Word) (fg_color & 0x000F);
+    Word bg_attr = (Word) (bg_color & 0x0007) << 4;
+    Word blink_attr = (Word) (blink & 0x0001) << 7;
     Word attr_byte = (fg_attr | bg_attr | blink_attr) << 8;
     Word ch = (Word) (c & 0x00FF) | attr_byte;
 
@@ -336,6 +317,13 @@ void tty_printc (struct tty* tty, char c) {
   
   tty->x = x;
   tty->y = y;
+  
+}
+
+void tty_printc (struct tty* tty, char c) {
+  print_to_bochs(c);
+  tty_printc_attributes (tty, c, tty->current_fg_color, tty->current_bg_color, tty->current_blinking);
+  
 }
 
 void tty_printk (char* str) {
@@ -365,6 +353,21 @@ void tty_scroll (struct tty* tty) { // if (topbar_enabled == 1) the TOP ROW shou
   }
 }
 
+void tty_print_text_cursor(struct tty* tty) {
+  /*
+      The VGA standard does not provide a way to alter the blink rate of the cursor.
+      A workarround to this is involves hiding the cursor and using a normal character
+          to provide a so-called software cursor.
+  */
+  Byte fg_color = 0xF; // white
+  Byte bg_color = 0x0; // black
+  int px = tty->x;
+  int py = tty->y;
+  tty_printc_attributes(tty, 219, fg_color, bg_color, 1);
+  tty->x = px;
+  tty->y = py;
+}
+
 void push_to_focus_read_buffer (char pr) {
   struct tty* tty = & ttys_table.ttys[ttys_table.focus];
   
@@ -377,7 +380,7 @@ void push_to_focus_read_buffer (char pr) {
     } else {
     }
   }
-  else errork(" --> keyboard_routine() : Read buffer is full!\n");
+  else printk(" --> keyboard_routine() : Read buffer is full!\n");
   
 }
 
@@ -394,7 +397,8 @@ int sys_read_console (struct tty* tty, char* user_buff, int count) {
   if (count >= CON_BUFFER_SIZE) count = CON_BUFFER_SIZE - 1;
   
   // Show writting '_' cursor
-  print_text_cursor();
+  // print_text_cursor();
+  tty_print_text_cursor(tty);
   
   // Pop chars from console buffer
   while (i < count) {

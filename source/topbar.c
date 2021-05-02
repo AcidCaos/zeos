@@ -13,6 +13,7 @@ char fg_color = 0xE; // yellow
 char bg_color = 0x1; // blue
 
 char last_key_pressed[32];
+int fps;
 
 char buffer[128];
 char aux[32];
@@ -20,25 +21,43 @@ char aux[32];
 // Num. Cols = 80; at io.c: 
 #define NUM_COLUMNS 80
 
+
 void init_topbar() {
   topbar_enabled = 1;
+  // Fill the row
+  for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
+}
+
+int frame_counter;
+int last_time;
+#include <utils.h> // for get_ticks()
+void track_fps() {
+  frame_counter++;
+  int now = get_ticks();
+  if (now - last_time >= 1000) { // milisecs.?
+    last_time = now;
+    fps = frame_counter;
+    frame_counter = 0;
+  }
 }
 
 void update_topbar() {
   
   if (!topbar_enabled) return;
   
+  track_fps();
+  
   // Fill the row
-  for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
+  //for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
   
   // Print Head
   printk_color_xy("ZeOS", fg_color, bg_color, 0, 0);
   
   // Print running process
   if(current()->PID == 0)
-    printk_color_xy("CPU: IDLE", fg_color, bg_color, 8, 0);
+    printk_color_xy("CPU: IDLE        ", fg_color, bg_color, 8, 0); // Spaces: Ensure erasing previous value
   else {
-    printk_color_xy("CPU: PID", fg_color, bg_color, 8, 0);
+    printk_color_xy("CPU: PID         ", fg_color, bg_color, 8, 0);
     itoa(current()->PID, buffer);
     printk_color_xy(buffer, fg_color, bg_color, 17, 0);
   }
@@ -51,14 +70,17 @@ void update_topbar() {
   printk_color_xy("(PID", fg_color, bg_color, 44, 0);
   itoa(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
   strcat (buffer, "; ");
-  int fps = 0; // TODO 
+  
   itoa(fps, aux);
   strcat (buffer, aux);
   strcat (buffer, " FPS)");
+  strcat (buffer, "      "); // Ensure erasing previous values
   printk_color_xy(buffer, fg_color, bg_color, 49, 0);
   
   // Print Last pressed key
-  printk_color_xy(last_key_pressed, fg_color, bg_color, NUM_COLUMNS - strlen(last_key_pressed), 0);
+  strcpy (buffer, "             "); // Ensure erasing previous values
+  strcpy (buffer + strlen(buffer) - strlen(last_key_pressed), last_key_pressed);
+  printk_color_xy(buffer, fg_color, bg_color, NUM_COLUMNS - strlen(buffer), 0);
   
 }
 

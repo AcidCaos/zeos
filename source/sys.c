@@ -40,7 +40,100 @@ int asm_get_ebp();
 int ret_from_fork() {
   return 0;
 }
+/*
+int sys_fork() {
+    struct list_head *lhcurrent = NULL;
+  union task_union *uchild;
+  
+  //Any free task_struct?
+  if (list_empty(&freequeue)) return -ENOMEM;
 
+  lhcurrent=list_first(&freequeue);
+  
+  list_del(lhcurrent);
+  
+  uchild=(union task_union*)list_head_to_task_struct(lhcurrent);
+  
+  // Copy the parent's task struct to child's
+  copy_data(current(), uchild, sizeof(union task_union));
+  
+  // new pages dir
+  allocate_DIR((struct task_struct*)uchild);
+  
+  // Allocate pages for DATA+STACK
+  int new_ph_pag, pag, i;
+  page_table_entry *process_PT = get_PT(&uchild->task);
+  for (pag=0; pag<NUM_PAG_DATA; pag++)
+  {
+    new_ph_pag=alloc_frame();
+    if (new_ph_pag!=-1) // One page allocated
+    {
+      set_ss_pag(process_PT, PAG_LOG_INIT_DATA+pag, new_ph_pag);
+    }
+    else // No more free pages left. Deallocate everything
+    {
+      // Deallocate allocated pages. Up to pag. 
+      for (i=0; i<pag; i++)
+      {
+        free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+        del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+      }
+      // Deallocate task_struct
+      list_add_tail(lhcurrent, &freequeue);
+      
+      // Return error
+      return -EAGAIN; 
+    }
+  }
+
+  // Copy parent's SYSTEM and CODE to child.
+  page_table_entry *parent_PT = get_PT(current());
+  for (pag=0; pag<NUM_PAG_KERNEL; pag++)
+  {
+    set_ss_pag(process_PT, pag, get_frame(parent_PT, pag));
+  }
+  for (pag=0; pag<NUM_PAG_CODE; pag++)
+  {
+    set_ss_pag(process_PT, PAG_LOG_INIT_CODE+pag, get_frame(parent_PT, PAG_LOG_INIT_CODE+pag));
+  }
+  // Copy parent's DATA to child. We will use TOTAL_PAGES-1 as a temp logical page to map to
+  for (pag=NUM_PAG_KERNEL+NUM_PAG_CODE; pag<NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA; pag++)
+  {
+    // Map one child page to parent's address space.
+    set_ss_pag(parent_PT, pag+NUM_PAG_DATA, get_frame(process_PT, pag));
+    copy_data((void*)(pag<<12), (void*)((pag+NUM_PAG_DATA)<<12), PAGE_SIZE);
+    del_ss_pag(parent_PT, pag+NUM_PAG_DATA);
+  }
+  // Deny access to the child's memory space
+  set_cr3(get_DIR(current()));
+
+  uchild->task.PID=get_next_pid(); // ++global_PID;
+  uchild->task.state=ST_READY;
+
+  int register_ebp;		// frame pointer
+  // Map Parent's ebp to child's stack
+  register_ebp = (int) asm_get_ebp();
+  register_ebp=(register_ebp - (int)current()) + (int)(uchild);
+
+  uchild->task.kernel_esp=register_ebp + sizeof(DWord);
+
+  DWord temp_ebp=*(DWord*)register_ebp;
+  // Prepare child stack for context switch
+  uchild->task.kernel_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.kernel_esp)=(DWord)&ret_from_fork;
+  uchild->task.kernel_esp-=sizeof(DWord);
+  *(DWord*)(uchild->task.kernel_esp)=temp_ebp;
+
+  // Set stats to 0
+  init_stats(&(uchild->task.stats));
+
+  //Queue child process into readyqueue
+  uchild->task.state=ST_READY;
+  list_add_tail(&(uchild->task.list_anchor), &readyqueue);
+  
+  return uchild->task.PID;
+}
+*/ 
 int sys_fork() {
 
   int PID=-1;
@@ -301,7 +394,7 @@ void sys_exit() {
   // (c) Schedule next process
   sched_next_rr();
   
-  errork("exit(): This point should never be reached.\n");
+  printk("exit(): This point should never be reached.\n");
   return;
 }
 

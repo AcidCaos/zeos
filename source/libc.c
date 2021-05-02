@@ -14,46 +14,51 @@ int errno;
 
 void perror() {
 
-  char buffer[128];
+  char buffer[256];
   char aux[32];
 
+  strcpy(buffer, "\033[312mError: "); // Red text
+  //strcpy(buffer, "");
+  
   switch (errno) {
     case 0:
-      strcpy(buffer, "No error.\n"); break;
+      strcpy(buffer, "No error."); break;
     case ESRCH: // 3
-      strcpy(buffer, "No such process.\n"); break;
+      strcat(buffer, "No such process."); break;
     case ENXIO: // 6
-      strcpy(buffer, "No such device or address.\n"); break;
+      strcat(buffer, "No such device or address."); break;
     case EBADF: // 9
-      strcpy(buffer, "Bad file number.\n"); break;
+      strcat(buffer, "Bad file number."); break;
     case EAGAIN: // 11
-      strcpy(buffer, "Try again.\n"); break;
+      strcat(buffer, "Try again."); break;
     case ENOMEM: // 12
-      strcpy(buffer, "Out of memory.\n"); break;
+      strcat(buffer, "Out of memory."); break;
     case EACCES: // 13
-      strcpy(buffer, "Permission denied.\n"); break;
+      strcat(buffer, "Permission denied."); break;
     case EFAULT: // 14
-      strcpy(buffer, "Bad address.\n"); break;
+      strcat(buffer, "Bad address."); break;
     case ENODEV: // 19
-      strcpy(buffer, "No such device.\n"); break;
+      strcat(buffer, "No such device."); break;
     case EINVAL: // 22
-      strcpy(buffer, "Invalid argument.\n"); break;
+      strcat(buffer, "Invalid argument."); break;
     case ENFILE: // 23
-      strcpy(buffer, "File table overflow.\n"); break;
+      strcat(buffer, "File table overflow."); break;
     case EMFILE: // 24
-      strcpy(buffer, "Too many open files.\n"); break;
+      strcat(buffer, "Too many open files."); break;
     case ENOTTY: // 25
-      strcpy(buffer, "Not a typewriter.\n"); break;
+      strcat(buffer, "Not a typewriter."); break;
     case ENOSYS: // 38
-      strcpy(buffer, "Function not implemented.\n"); break;
+      strcat(buffer, "Function not implemented."); break;
     default:
-      strcpy(buffer, "Unknown error. Error number is ");
+      strcat(buffer, "Unknown error. Error number is ");
       itoa(errno, aux);
       strcat(buffer, aux);
-      strcat(buffer, ".\n");
+      strcat(buffer, ".");
       break;
   }
-  write(2, buffer, strlen(buffer)); // We'll hope this write does work...
+  strcat(buffer, "\033[0m\n");
+  //strcat(buffer, "\033[0m"); Escape code at the end does not work well.
+  write(1, buffer, strlen(buffer));
 }
 
 
