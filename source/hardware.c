@@ -97,13 +97,26 @@ void return_gate(Word ds, Word ss, DWord esp, Word cs, DWord eip)
 
 void enable_int(void)
 {
+  // Master PIC
+
 __asm__ __volatile__(
   "movb %0,%%al\n\t"
   "outb %%al,$0x21\n\t"
   "call delay\n\t"
   "sti"
+  : /*no output*/ //                v---PIC Cascading!
+  : "i" (0xF8)       /* 0xF8 = 11111000 -> Enabled: clock(timer), keyobard, PIC Cascading*/
+  : "%al" );
+
+  // Slave PIC
+  
+  __asm__ __volatile__(
+  "movb %0,%%al\n\t"
+  "outb %%al,$0xa1\n\t"
+  "call delay\n\t"
+  "sti"
   : /*no output*/
-  : "i" (0xFC)       /* 0xFC = 11111100 -> all bits disabled + enabled: clock(timer), keyobard*/
+  : "i" (0xEF)       /* 0xEF = 11101111 -> Enabled: PS/2 Mouse*/
   : "%al" );
 }
 

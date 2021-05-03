@@ -6,6 +6,7 @@
 #include <cyclic_buffer.h>
 #include <devices.h>
 #include <tty.h>
+#include <ps2.h>
 
 // Queue for blocked processes in I/O 
 // extern struct cyclic_buffer console_input; // devices.h
@@ -15,6 +16,9 @@ void init_devices() {
   
   // ttys
   init_ttys_table();
+
+  // PS/2 Mouse
+  ps2_mouse_init ();
   
 }
 

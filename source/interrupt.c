@@ -15,6 +15,7 @@
 #include <list.h>
 #include <devices.h>
 #include <cyclic_buffer.h>
+#include <ps2.h>
 
 
 
@@ -87,6 +88,7 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 // # include del header de entry.S
 void clock_handler();
 void keyboard_handler();
+void ps2_mouse_handler();
 
 void writeMsr(int msr, int data);
 void syscall_handler_sysenter();
@@ -108,11 +110,21 @@ void setIdt() {
   set_handlers();
 
 
-  /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   
-  setInterruptHandler(32, clock_handler, 0); // clock_handler
-  setInterruptHandler(33, keyboard_handler, 0); // keyboard handler
+  // Default Interrupt Vector Assignment
+  /*
+      INT     Descr.
+      0-31    Protected Mode Exceptions (Reserved by Intel)
+      8-15    Default mapping of IRQ0-7 by BIOS at Bootstrap
+      70h-78h Default mapping of IRQ8-15 by BIOS at Bootstrap
+  */
+  
+  // Inicialize Interrupt Vector
+  setInterruptHandler(32, clock_handler, 0); // clock_handler       IRQ-0
+  setInterruptHandler(33, keyboard_handler, 0); // keyboard handler IRQ-1
+  setInterruptHandler(44, ps2_mouse_handler, 0); // PS/2 mouse handler IRQ-12
 
+  
   // syscall_handler with SYSENTER.
   writeMsr(0x174, __KERNEL_CS);
   writeMsr(0x175, INITIAL_ESP);
@@ -135,15 +147,18 @@ void clock_routine() {
 
   update_topbar();
   
+  show_mouse();
+  
   scheduler();
   return;
 }
 
 
-extern struct cyclic_buffer console_input; // devices.h
+// extern struct cyclic_buffer console_input; // devices.h
 
 
 void keyboard_routine() {
+  
   unsigned char p = inb(0x60); // Keyboard data register port = 0x60
   unsigned char mkbrk = (p >> 7) & 0x01;
   unsigned char scancode = p & 0x7F;
@@ -196,11 +211,12 @@ void keyboard_routine() {
   return;
 }
 
+#include <ps2.h>
 
-
-
-
-
-
+void ps2_mouse_routine () {
+  
+  ps2_mouse_routine_inner ();
+  
+}
 
 

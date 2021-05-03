@@ -57,7 +57,6 @@ void perror() {
       break;
   }
   strcat(buffer, "\033[0m\n");
-  //strcat(buffer, "\033[0m"); Escape code at the end does not work well.
   write(1, buffer, strlen(buffer));
 }
 
@@ -88,6 +87,7 @@ void itoa(int a, char *b) {
   if (a==0) { b[0]='0'; b[1]=0; return ;}
   
   i=0;
+   
   while (a>0) {
     b[i]=(a%10)+'0';
     a=a/10;

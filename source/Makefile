@@ -38,6 +38,7 @@ SYSOBJ = \
 	systemwrap.o \
 	stats.o \
 	cyclic_buffer.o \
+	ps2.o \
         
 
 LIBZEOS = -L . -l zeos
@@ -90,6 +91,8 @@ interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCL
 tty.o:tty.c $(INCLUDEDIR)/tty.h
 
 io.o:io.c $(INCLUDEDIR)/io.h
+
+ps2.o:ps2.c $(INCLUDEDIR)/ps2.h
 
 topbar.o:topbar.c $(INCLUDEDIR)/topbar.h
 

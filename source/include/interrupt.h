@@ -25,5 +25,9 @@ void clock_routine();
 
 void keyboard_routine();
 
+void ps2_mouse_routine();
+
+// PS/2 Mouse
+void ps2_mouse_init ();
 
 #endif  /* __INTERRUPT_H__ */

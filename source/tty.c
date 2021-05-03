@@ -277,7 +277,11 @@ int sys_write_console (struct tty* tty, char* buffer, int size) {
         else break;
       }
     }
-      
+    
+    // Check if Escape code was the last character in the string.
+    if (i >= size) break;
+    
+    
     // Write al buffer del tty
     tty_printc (tty, buffer[i]);
     

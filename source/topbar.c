@@ -3,11 +3,12 @@
 #include <sched.h>
 #include <interrupt.h>
 #include <tty.h>
+#include <ps2.h>
 
-char* strcpy(char* d, const char* s);
-char* strcat(char* str1, const char* str2);
-void itoa(int a, char *b);
-int strlen(char *a);
+char* strcpy_k(char* d, const char* s);
+char* strcat_k(char* str1, const char* str2);
+void itoa_k(int a, char *b);
+int strlen_k(char *a);
 
 char fg_color = 0xE; // yellow
 char bg_color = 0x1; // blue
@@ -21,7 +22,6 @@ char aux[32];
 // Num. Cols = 80; at io.c: 
 #define NUM_COLUMNS 80
 
-
 void init_topbar() {
   topbar_enabled = 1;
   // Fill the row
@@ -31,10 +31,12 @@ void init_topbar() {
 int frame_counter;
 int last_time;
 #include <utils.h> // for get_ticks()
+#define IPS 4000000
+
 void track_fps() {
   frame_counter++;
   int now = get_ticks();
-  if (now - last_time >= 1000) { // milisecs.?
+  if (now - last_time >= IPS || last_time == 0) { // milisecs.?
     last_time = now;
     fps = frame_counter;
     frame_counter = 0;
@@ -58,30 +60,42 @@ void update_topbar() {
     printk_color_xy("CPU: IDLE        ", fg_color, bg_color, 8, 0); // Spaces: Ensure erasing previous value
   else {
     printk_color_xy("CPU: PID         ", fg_color, bg_color, 8, 0);
-    itoa(current()->PID, buffer);
+    itoa_k(current()->PID, buffer);
     printk_color_xy(buffer, fg_color, bg_color, 17, 0);
   }
   
   // Print tty info
   printk_color_xy("TTY", fg_color, bg_color, 37, 0);
-  itoa(ttys_table.focus, buffer);
+  itoa_k(ttys_table.focus, buffer);
   printk_color_xy(buffer, fg_color, bg_color, 41, 0);
   
   printk_color_xy("(PID", fg_color, bg_color, 44, 0);
-  itoa(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
-  strcat (buffer, "; ");
+  itoa_k(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
+  strcat_k (buffer, "; ");
   
-  itoa(fps, aux);
-  strcat (buffer, aux);
-  strcat (buffer, " FPS)");
-  strcat (buffer, "      "); // Ensure erasing previous values
+  itoa_k(fps, aux);
+  strcat_k (buffer, aux);
+  strcat_k (buffer, " FPS)");
+  strcat_k (buffer, "      "); // Ensure erasing previous values
   printk_color_xy(buffer, fg_color, bg_color, 49, 0);
   
   // Print Last pressed key
-  strcpy (buffer, "             "); // Ensure erasing previous values
-  strcpy (buffer + strlen(buffer) - strlen(last_key_pressed), last_key_pressed);
-  printk_color_xy(buffer, fg_color, bg_color, NUM_COLUMNS - strlen(buffer), 0);
+  strcpy_k (buffer, "             "); // Ensure erasing previous values
+  strcpy_k (buffer + strlen_k(buffer) - strlen_k(last_key_pressed), last_key_pressed);
+  printk_color_xy(buffer, fg_color, bg_color, NUM_COLUMNS - strlen_k(buffer), 0);
   
+  // MOUSE
+  
+  int xcoord = mouse.x;
+  int ycoord = mouse.y;
+  
+  itoa_k(xcoord, buffer);
+  strcat_k (buffer, ", ");
+  itoa_k(ycoord, aux);
+  strcat_k (buffer, aux);
+  strcat_k (buffer, "      ");
+  printk_color_xy (buffer, fg_color, bg_color, 24, 0);
+  //printk(buffer);
 }
 
 void update_last_key_pressed() { // Called at Keyboard Interrupt
@@ -114,44 +128,44 @@ void update_last_key_pressed() { // Called at Keyboard Interrupt
   }
   
   if ( ! control ) {
-    if      (SPACE) strcpy(last_key_pressed, "[SPACE]");
-    else if (ENTER) strcpy(last_key_pressed, "[ENTER]");
+    if      (SPACE) strcpy_k(last_key_pressed, "[SPACE]");
+    else if (ENTER) strcpy_k(last_key_pressed, "[ENTER]");
     else {
       last_key_pressed[0] = ascii_key;
       last_key_pressed[1] = 0;
     }
   }
   else {
-    if (TAB && (SHIFT_L || SHIFT_R)) strcpy(last_key_pressed, "[SHIFT+TAB]");
-    else if (TAB) strcpy(last_key_pressed, "[TAB]");
+    if (TAB && (SHIFT_L || SHIFT_R)) strcpy_k(last_key_pressed, "[SHIFT+TAB]");
+    else if (TAB) strcpy_k(last_key_pressed, "[TAB]");
     else if (SHIFT_L || SHIFT_R) {
       if (ascii_key >= 'a' && ascii_key <= 'z'){ // Shift keys + lowercase
         ascii_key = ascii_key - 'a' + 'A';
         last_key_pressed[0] = ascii_key;
         last_key_pressed[1] = 0;
       }
-      else strcpy(last_key_pressed, "[SHIFT]");
+      else strcpy_k(last_key_pressed, "[SHIFT]");
     }
-    else if (CTRL_L || CTRL_R) strcpy(last_key_pressed, "[CTRL]");
-    else if (ALT) strcpy(last_key_pressed, "[ALT]");
-    else if (UP) strcpy(last_key_pressed, "[UP]");
-    else if (DOWN) strcpy(last_key_pressed, "[DOWN]");
-    else if (LEFT) strcpy(last_key_pressed, "[LEFT]");
-    else if (RIGHT) strcpy(last_key_pressed, "[RIGHT]");
-    else if (DEL) strcpy(last_key_pressed, "[DEL]");
-    else if (RET) strcpy(last_key_pressed, "[RET]");
-    else if (ESC) strcpy(last_key_pressed, "[ESC]");
+    else if (CTRL_L || CTRL_R) strcpy_k(last_key_pressed, "[CTRL]");
+    else if (ALT) strcpy_k(last_key_pressed, "[ALT]");
+    else if (UP) strcpy_k(last_key_pressed, "[UP]");
+    else if (DOWN) strcpy_k(last_key_pressed, "[DOWN]");
+    else if (LEFT) strcpy_k(last_key_pressed, "[LEFT]");
+    else if (RIGHT) strcpy_k(last_key_pressed, "[RIGHT]");
+    else if (DEL) strcpy_k(last_key_pressed, "[DEL]");
+    else if (RET) strcpy_k(last_key_pressed, "[RET]");
+    else if (ESC) strcpy_k(last_key_pressed, "[ESC]");
   }
 }
 
-int strlen(char *a) {
+int strlen_k(char *a) {
   int i;
   i=0;
   while (a[i]!=0) i++;
   return i;
 }
 
-char* strcpy(char* d, const char* s) {
+char* strcpy_k(char* d, const char* s) {
   if (d == NULL) return NULL; 
   char* ptr = d;
   while (*s != 0) {
@@ -163,11 +177,34 @@ char* strcpy(char* d, const char* s) {
   return ptr;
 }
 
-char* strcat(char* str1, const char* str2) {
+char* strcat_k(char* str1, const char* str2) {
   char* ret = str1;
   while (*str1) str1++;
   while ((*str1++ = *str2++));
   return ret;
 }
 
+void itoa_k(int a, char *b) {
+  int i, i1;
+  char c;
+  
+  if (a==0) { b[0]='0'; b[1]=0; return ;}
+  
+  i=0;
+  
+  if (a < 0) { b[0]='-'; b++; a = - a;}
+  
+  while (a>0) {
+    b[i]=(a%10)+'0';
+    a=a/10;
+    i++;
+  }
+  
+  for (i1=0; i1<i/2; i1++) {
+    c=b[i1];
+    b[i1]=b[i-i1-1];
+    b[i-i1-1]=c;
+  }
+  b[i]=0;
+}
 

@@ -68,9 +68,19 @@
   notify the system that we have received the interrupt, 
   and, therefore, we are ready to receive new interrupts.
 */
+
+// For interrupts IRQ 0 .. 8
 #define EOI \
       movb $0x20, %al; \
       outb %al, $0x20;
+
+// For interrupts IRQ 8 .. 15 --> Managed by the Slave PIC. (Send EOI to both)
+
+#define EOI_PIC2 \
+      movb $0x20, %al; \
+      outb %al, $0x20; \
+      outb %al, $0xA0;
+
 
 #define USER2SYS \
       push %eax; \
@@ -109,6 +119,16 @@ ENTRY(keyboard_handler)
   USER2SYS
   call keyboard_routine
   EOI
+  SYS2USER
+  RESTORE_ALL
+  iret
+
+
+ENTRY(ps2_mouse_handler)
+  SAVE_ALL
+  USER2SYS
+  call ps2_mouse_routine
+  EOI_PIC2
   SYS2USER
   RESTORE_ALL
   iret

@@ -57,8 +57,12 @@ void printc_attributes (char c, int fg_color, int bg_color, int blink) {
 /* Read a byte from 'port' */
 Byte inb (unsigned short port) {
   Byte v;
-  __asm__ __volatile__ ("inb %w1,%0":"=a" (v):"Nd" (port));
+  __asm__ __volatile__ ( "inb %w1, %0" : "=a" (v) : "Nd" (port) );
   return v;
+}
+
+void outb (unsigned char value, unsigned short port) {
+  __asm__ __volatile__ ( "outb %0, %1" : : "a" (value), "Nd" (port) );
 }
 
 void clear () {

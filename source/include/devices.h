@@ -5,7 +5,6 @@
 #include <sched.h>
 
 struct list_head blocked;
-//struct list_head read_queue;
 
 void init_devices();
 

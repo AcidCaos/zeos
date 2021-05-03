@@ -36,7 +36,7 @@ int execute(char * command) {
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
-  else if (strequ(command, "exit") || strequ(command, "quit")) /*exit(); //*/must_close = 1;
+  else if (strequ(command, "exit") || strequ(command, "quit")) exit(); //*/must_close = 1;
   else if (strequ(command, "eva")) new_adam_tty();
   else if (strequ(command, "")) return 0;
   // Easter-eggs i altres...

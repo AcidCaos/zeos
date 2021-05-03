@@ -33,6 +33,8 @@ struct tty {
   int x, y; // Cursor position and color
   int current_fg_color, current_bg_color; // Current colors
   int current_blinking; // Current character blinks
+  
+  //Word* p_buffer; // Screen buffer
   Word buffer [NUM_COLUMNS * NUM_ROWS]; // Screen buffer
   
   // Input
