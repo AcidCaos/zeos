@@ -24,7 +24,7 @@ void init_tty (struct tty* tty) {
   
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
-      tty->buffer[row * NUM_COLUMNS + col] = 0x0F00;
+      tty->p_buffer[row * NUM_COLUMNS + col] = 0x0F00;
     }
   }
   
@@ -35,18 +35,36 @@ void init_tty (struct tty* tty) {
 }
 
 void init_ttys_table() {
-
+  
+  
+  // TODO 
+  for (int i = 0; i < 30; i++) {
+    struct tty* tty = & ttys_table.ttys[i];
+    //Word * temp_b = (& ttys_table.temp_buffer);// + 1 * i; //sizeof(Word) * NUM_COLUMNS * NUM_ROWS * i;
+    Word * temp_b = (& ttys_table.temp_buffer) + i;
+    tty->p_buffer = temp_b;
+  }
+  // TODO n't
+  
+  
   // By default, there's only one tty
   
   ttys_table.focus = 0;
   ttys_table.use_count[0] = 1;
-
+  
+  //struct tty* tty0 = & ttys_table.ttys[0];
   struct tty* tty0 = & ttys_table.ttys[0];
   
-  init_tty (tty0);
+  /*for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLUMNS; col++) {
+      tty0->p_buffer[row * NUM_COLUMNS + col] = 0x0F2E;
+    }
+  }*/
   
   // Force its creator to be task1
   tty0->pid_maker = 1;
+  
+  init_tty (tty0);
   
 }
 
@@ -125,7 +143,7 @@ void set_tty_general_attr (struct tty* tty, int n) {
   
   else if (n == 5) tty->current_blinking = 1;
   
-  else if (n == 9) tty->buffer[(tty->y * NUM_COLUMNS + tty->x)] = 0x00;
+  else if (n == 9) tty->p_buffer[(tty->y * NUM_COLUMNS + tty->x)] = 0x00;
   
 }
 
@@ -160,7 +178,7 @@ void show_console () { // Called in clock_routine . TODO : FPS
   struct tty* tty_focus = & ttys_table.ttys[focus];
   
   //Word* tty_buff = (Word *) & tty_focus->buffer; 
-  Word* tty_buff = tty_focus->buffer;
+  Word* tty_buff = tty_focus->p_buffer;
   Word* screen = (Word *) 0xb8000;
   
   for (int row = topbar_enabled; row < NUM_ROWS; row++) {
@@ -311,7 +329,7 @@ void tty_printc_attributes (struct tty* tty, char c, int fg_color, int bg_color,
     Word attr_byte = (fg_attr | bg_attr | blink_attr) << 8;
     Word ch = (Word) (c & 0x00FF) | attr_byte;
 
-    tty->buffer[(y * NUM_COLUMNS + x)] = ch;
+    tty->p_buffer[(y * NUM_COLUMNS + x)] = ch;
     if (++x >= NUM_COLUMNS) {
       x = 0;
       if (y + 1 >= NUM_ROWS) tty_scroll(tty);
@@ -347,13 +365,13 @@ void tty_scroll (struct tty* tty) { // if (topbar_enabled == 1) the TOP ROW shou
   // Move all up
   for (int row = 1 + topbar_enabled; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
-      tty->buffer[(row-1) * NUM_COLUMNS + col] = tty->buffer[row * NUM_COLUMNS + col];
+      tty->p_buffer[(row-1) * NUM_COLUMNS + col] = tty->p_buffer[row * NUM_COLUMNS + col];
     }
   }
   // Clean last row
   Word ch = (Word) (' ' & 0x00FF);
   for (int col = 0; col < NUM_COLUMNS; col++) {
-    tty->buffer[(NUM_ROWS-1) * NUM_COLUMNS + col] = ch;
+    tty->p_buffer[(NUM_ROWS-1) * NUM_COLUMNS + col] = ch;
   }
 }
 

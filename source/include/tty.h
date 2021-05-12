@@ -34,8 +34,8 @@ struct tty {
   int current_fg_color, current_bg_color; // Current colors
   int current_blinking; // Current character blinks
   
-  //Word* p_buffer; // Screen buffer
-  Word buffer [NUM_COLUMNS * NUM_ROWS]; // Screen buffer
+  Word* p_buffer; // Screen buffer
+  //Word buffer [NUM_COLUMNS * NUM_ROWS]; // Screen buffer
   
   // Input
   struct cyclic_buffer console_input;
@@ -44,10 +44,19 @@ struct tty {
 };
 
 struct ttys_table {
+  
   int use_count [MAX_TTYS];
-  //struct tty* ttys [MAX_TTYS]; // TODO : hauria de ser punters a direccions de memoria d.usuari protegides
   struct tty ttys [MAX_TTYS];
   int focus;
+  
+  // TODO 
+  //Word temp_buffer [5] [NUM_COLUMNS * NUM_ROWS];
+  Word temp_buffer [NUM_COLUMNS * NUM_ROWS];
+  Word temp_buffer_1 [NUM_COLUMNS * NUM_ROWS];
+  Word temp_buffer_2 [NUM_COLUMNS * NUM_ROWS];
+  Word temp_buffer_3 [NUM_COLUMNS * NUM_ROWS];
+  Word temp_buffer_4 [NUM_COLUMNS * NUM_ROWS];
+  //Word temp_buffer_5 [NUM_COLUMNS * NUM_ROWS];
   
 };
 
@@ -56,12 +65,12 @@ struct ttys_table ttys_table;
 
 void init_tty (struct tty* tty);
 void init_ttys_table();
+
 struct tty* get_init_free_tty ();
 int increment_use_count_tty (struct tty* tty);
 int decrement_use_count_tty (struct tty* tty);
 
 int sys_write_console(struct tty* tty, char *buffer, int size);
-//int sys_write_console_error(char *buffer, int size);
 int sys_read_console (struct tty* tty, char* user_buff, int count);
 
 void set_tty_cursor (struct tty* tty, int x, int y);

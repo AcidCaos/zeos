@@ -96,7 +96,7 @@ int __attribute__((__section__(".text.main"))) main(void) {
   init_mm();
 
   
-  printk("Initialize devices\n");
+  //printk("Initialize devices\n");
   init_devices();
 
   /* Initialize an address space to be used for the monoprocess version of ZeOS */
