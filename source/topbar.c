@@ -28,15 +28,28 @@ void init_topbar() {
   for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
 }
 
-int frame_counter;
-int last_time;
+
 #include <utils.h> // for get_ticks()
+
+int frame_counter;
+unsigned long long last_time;
+
 #define IPS 4000000
+
+char buff[256];
 
 void track_fps() {
   frame_counter++;
-  int now = get_ticks();
-  if (now - last_time >= IPS || last_time == 0) { // milisecs.?
+  unsigned long long now = get_ticks();
+  
+  /*itoa_k(now, buff);
+  printk(buff);
+  printk("\n");*/
+
+  if (now - last_time >= IPS) {
+    
+    // printk("Second\n");
+    
     last_time = now;
     fps = frame_counter;
     frame_counter = 0;
@@ -49,11 +62,8 @@ void update_topbar() {
   
   track_fps();
   
-  // Fill the row
-  //for (int x = 0; x<80; x+=10) printk_color_xy("          ", fg_color, bg_color, x, 0);
-  
   // Print Head
-  printk_color_xy("ZeOS", fg_color, bg_color, 0, 0);
+  printk_color_xy("ZeOS    ", fg_color, bg_color, 0, 0);
   
   // Print running process
   if(current()->PID == 0)
@@ -65,37 +75,41 @@ void update_topbar() {
   }
   
   // Print tty info
-  printk_color_xy("TTY", fg_color, bg_color, 37, 0);
-  itoa_k(ttys_table.focus, buffer);
-  printk_color_xy(buffer, fg_color, bg_color, 41, 0);
-  
-  printk_color_xy("(PID", fg_color, bg_color, 44, 0);
+  printk_color_xy(" (PID ", fg_color, bg_color, 30, 0); //44
   itoa_k(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
   strcat_k (buffer, "; ");
   
+  // Print tty info
+  printk_color_xy("TTY ", fg_color, bg_color, 24, 0); //37
+  itoa_k(ttys_table.focus, buffer);
+  strcat_k (buffer, " ");
+  printk_color_xy(buffer, fg_color, bg_color, 28, 0); //41
+  
   itoa_k(fps, aux);
+  strcat_k (buffer, "; ");
   strcat_k (buffer, aux);
   strcat_k (buffer, " FPS)");
-  strcat_k (buffer, "      "); // Ensure erasing previous values
-  printk_color_xy(buffer, fg_color, bg_color, 49, 0);
+  strcat_k (buffer, "       "); // Ensure erasing previous values
+  printk_color_xy(buffer, fg_color, bg_color, 36, 0); //49
   
-  // Print Last pressed key
-  strcpy_k (buffer, "             "); // Ensure erasing previous values
-  strcpy_k (buffer + strlen_k(buffer) - strlen_k(last_key_pressed), last_key_pressed);
-  printk_color_xy(buffer, fg_color, bg_color, NUM_COLUMNS - strlen_k(buffer), 0);
-  
-  // MOUSE
-  
+  // Mous position
   int xcoord = mouse.x;
   int ycoord = mouse.y;
   
-  itoa_k(xcoord, buffer);
+  strcpy_k (buffer, "    (");
+  itoa_k(xcoord, aux);
+  strcat_k (buffer, aux);
   strcat_k (buffer, ", ");
   itoa_k(ycoord, aux);
   strcat_k (buffer, aux);
-  strcat_k (buffer, "      ");
-  printk_color_xy (buffer, fg_color, bg_color, 24, 0);
-  //printk(buffer);
+  strcat_k (buffer, ")  ");
+  printk_color_xy (buffer, fg_color, bg_color, 53, 0); //24
+  
+  // Print Last pressed key
+  strcpy_k (buffer, "              "); // Ensure erasing previous values
+  strcpy_k (buffer + strlen_k(buffer) - strlen_k(last_key_pressed), last_key_pressed);
+  printk_color_xy(buffer, fg_color, bg_color, NUM_COLUMNS - strlen_k(buffer), 0);
+  
 }
 
 void update_last_key_pressed() { // Called at Keyboard Interrupt

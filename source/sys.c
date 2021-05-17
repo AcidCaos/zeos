@@ -354,6 +354,8 @@ int sys_open_tty_ro (int tty_fd) {
   tc->taula_canals[fd].mode = RDONLY;
   tc->taula_canals[fd].device = tty;
   
+  increment_use_count_tty(tty);
+  
   return fd;
 }
 

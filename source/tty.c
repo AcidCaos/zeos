@@ -22,6 +22,8 @@ void init_tty (struct tty* tty) {
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
   
+  // tty->p_buffer = memory_allocate_page();
+  
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
       tty->p_buffer[row * NUM_COLUMNS + col] = 0x0F00;
@@ -68,6 +70,25 @@ void init_ttys_table() {
   
 }
 
+unsigned long * memory_allocate_page() {
+  
+  // page_table_entry* TP_current;
+  
+  
+  // TP_current = get_PT(current());
+  
+  // Allocatar pagina física
+  
+  // Buscar pagina logica d.usuari lliure
+  
+  // Associar pag log -> pag ph.
+  // set_ss_pag ( TP_current , 99, 99 );
+  
+  /*
+  return (unsigned long *) (& ttys_table.temp_buffer) + aux_aux * sizeof(Word) * NUM_COLUMNS * NUM_ROWS;
+  */
+}
+
 struct tty* get_init_free_tty () {
   
   for (int i = 0; i < MAX_TTYS; i++) {
@@ -96,6 +117,7 @@ int decrement_use_count_tty (struct tty* tty) {
   for (int i = 0; i < MAX_TTYS; i++) {
     if ( & ttys_table.ttys[i] == tty) {
       ttys_table.use_count[i]--;
+      if ( ! ttys_table.use_count[i]) show_next_tty();
       return 0;
     }
   }

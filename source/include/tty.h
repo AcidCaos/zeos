@@ -65,6 +65,7 @@ struct ttys_table ttys_table;
 
 void init_tty (struct tty* tty);
 void init_ttys_table();
+unsigned long * memory_allocate_page();
 
 struct tty* get_init_free_tty ();
 int increment_use_count_tty (struct tty* tty);
