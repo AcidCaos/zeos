@@ -13,6 +13,15 @@ int adam () {
   print("\n\033[313mAdam [Version 2.0]\n");
   print("\033[35mA simple shell in ZeOS, and the father of all processes.\n");
   print("Enter 'h' for help.\033[0m\n\n");
+  print("\n\n");
+  print("\033[314m TESTING: (Comanda + synopsis)   SHIFT+TAB per fer zapping.\n\n");
+  print("\033[311m eva \033[37m- fa fork, tanca el fd 1, fa una nova pantalla, i executa Adam.\n");
+  print("\033[311m tty \033[37m- obre una nova pantalla per aquest proces.\n");
+  print("\033[311m epilepsia \033[37m- s'obren, es fa focus, i es tanquen pantalles.\n");
+  print("\033[311m test \033[37m- fa forks i prova les syscalls de la Entrega 1.\n");
+  print("\033[311m walls \033[37m- un joc per testejar el read(). Control: W A S D\n");
+  
+  print("\n\033[311m EP! \033[37m- Hi ha altres comandes! Escriu 'h' per help.\n\n");
   
   while (must_close == 0) {
     
@@ -43,6 +52,11 @@ int execute(char * command) {
   else if (strequ(command, "adam")) print("i eva!\n");
   else if (strequ(command, "walls")) walls();
   else if (strequ(command, "bye")) print("Sorry, this is not ftp... Try with 'quit'.\n");
+  else if (strequ(command, "hola")) print("parles sol?\n");
+  // Testing
+  else if (strequ(command, "tty")) {createScreen(); print("Fes SHIFT + TAB per arribar-hi.\n");}
+  else if (strequ(command, "epilepsia")) epilepsia();
+  
   else    {
     print("Command '"); print(command); print("' does not exist.\n");
     return -1;
@@ -182,10 +196,31 @@ void new_adam_tty() {
     //setFocus(ret_1);
     exit();
   }
-  itoa (ret_f, buff);
-  print("Done! New Adam (PID ");
-  strcat(buff, ")\n");
-  print(buff);
+  if (ret_f > 0) {
+    itoa (ret_f, buff);
+    print("Done! New Adam (PID ");
+    strcat(buff, ")\n");
+    print(buff);
+  } else {
+    perror();
+  }
+}
+
+void epilepsia() {
+  char buff[32];
+  int ret_0, ret_1;
+  
+  for (int k = 0; k < 5; k++) {
+    ret_1 = createScreen();
+    setFocus(ret_1);
+    write (ret_1, "HOLA", sizeof("HOLA"));
+    for (int i = 0; i < 10000000; i++) if (i % 100000 == 0) write (ret_1, ".", sizeof("."));
+    write (ret_1, "ADEU", sizeof("ADEU"));
+    close(ret_1);
+  }
+  
+  setFocus(1);
+  
 }
 
 
