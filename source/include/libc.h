@@ -59,7 +59,8 @@ void printl (char* buffer);
 
 // Basic string treatment
 void itoa(int num, char *buffer);
-int strlen(char *buffer);
+int atoi(char* buff);
+int strlen(char* buffer);
 char* strcat(char* dest, const char* src);
 char* strcpy(char* dest, const char* src);
 int strequ(const char* a, const char* b);

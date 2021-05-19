@@ -43,32 +43,9 @@ void init_tty (struct tty* tty) {
 }
 
 void init_ttys_table() {
-  
-  /*
-  // TODO TODO TODO 
-  for (int i = 0; i < 30; i++) {
-    struct tty* tty = & ttys_table.ttys[i];
-    //Word * temp_b = (& ttys_table.temp_buffer);// + 1 * i; //sizeof(Word) * NUM_COLUMNS * NUM_ROWS * i;
-    Word * temp_b = (& ttys_table.temp_buffer) + i;
-    tty->p_buffer = temp_b;
-  }
-  // TODO TODO TODO n't
-  */
    
   ttys_table.focus = -1;
   
-  
-  /*
-  NOW DONE at init_task1
-  
-  struct tty* tty0 = & ttys_table.ttys[0];
-  
-  // Force its creator to be task1
-  tty0->pid_maker = 1;
-  
-  init_tty (tty0);
-  
-  */
 }
 
 void init_task1_tty0 ( struct task_struct * t_s ) {
@@ -138,7 +115,10 @@ int decrement_use_count_tty (struct tty* tty) {
   for (int i = 0; i < MAX_TTYS; i++) {
     if ( & ttys_table.ttys[i] == tty) {
       ttys_table.use_count[i]--;
-      if ( ! ttys_table.use_count[i]) show_next_tty();
+      if ( ! ttys_table.use_count[i]) {
+        free_frame(tty->physical_page);
+        if (ttys_table.focus == i) show_next_tty();
+      }
       return 0;
     }
   }
@@ -241,14 +221,6 @@ unsigned long tty_buffer_temp_logical_page (struct tty* tty, struct task_struct 
   return ((unsigned long)(temp_logical_page)) << 12;
 }
 
-
-int undo_tty_buffer_temp_logical_page () { // Not used
-  page_table_entry* current_PT = get_PT(current());
-  del_ss_pag(current_PT, temp_logical_page);
-  // Flush TLB
-  set_cr3(current()->dir_pages_baseAddr);
-  return 0;
-}
 
 //*********************
 // Show TTY to SCREEN
@@ -484,6 +456,7 @@ void tty_print_text_cursor(struct tty* tty) {
   Byte bg_color = 0x0; // black
   int px = tty->x;
   int py = tty->y;
+  tty_buffer_temp_logical_page (tty , current()); 
   tty_printc_attributes(tty, 219, fg_color, bg_color, 1);
   tty->x = px;
   tty->y = py;

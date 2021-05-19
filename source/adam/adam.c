@@ -13,15 +13,7 @@ int adam () {
   print("\n\033[313mAdam [Version 2.0]\n");
   print("\033[35mA simple shell in ZeOS, and the father of all processes.\n");
   print("Enter 'h' for help.\033[0m\n\n");
-  print("\n\n");
-  print("\033[314m TESTING: (Comanda + synopsis)   SHIFT+TAB per fer zapping.\n\n");
-  print("\033[311m eva \033[37m- fa fork, tanca el fd 1, fa una nova pantalla, i executa Adam.\n");
-  print("\033[311m tty \033[37m- obre una nova pantalla per aquest proces.\n");
-  print("\033[311m epilepsia \033[37m- s'obren, es fa focus, i es tanquen pantalles.\n");
-  print("\033[311m test \033[37m- fa forks i prova les syscalls de la Entrega 1.\n");
-  print("\033[311m walls \033[37m- un joc per testejar el read(). Control: W A S D\n");
-  
-  print("\n\033[311m EP! \033[37m- Hi ha altres comandes! Escriu 'h' per help.\n\n");
+  print("Enter 't' for testing options.\033[0m\n\n");
   
   while (must_close == 0) {
     
@@ -42,6 +34,7 @@ int execute(char * command) {
   
   // Comandes Documentades
   if      (strequ(command, "h") || strequ(command, "help")) help();
+  if      (strequ(command, "t") || strequ(command, "testing")) testing_help();
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
@@ -54,7 +47,8 @@ int execute(char * command) {
   else if (strequ(command, "bye")) print("Sorry, this is not ftp... Try with 'quit'.\n");
   else if (strequ(command, "hola")) print("parles sol?\n");
   // Testing
-  else if (strequ(command, "tty")) {createScreen(); print("Fes SHIFT + TAB per arribar-hi.\n");}
+  else if (strequ(command, "tty")) tty();
+  else if (strequ(command, "close")) close_tty();
   else if (strequ(command, "epilepsia")) epilepsia();
   
   else    {
@@ -67,6 +61,7 @@ int execute(char * command) {
 void help() {
   print("List of accepted commands:\n\n");
   print("\033[312m       h \033[0m-\033[37m Shows this help message.\n");
+  print("\033[312m       t \033[0m-\033[37m Shows testing options.\n");
   print("\033[312m    ping \033[0m-\033[37m Answers 'pong'.\n");
   print("\033[312m    test \033[0m-\033[37m Executes a series of tests for all syscalls.\n");
   print("\033[312m   stats \033[0m-\033[37m Shows Adam process stats.\n");
@@ -75,6 +70,18 @@ void help() {
   print("\033[312m     eva \033[0m-\033[37m New Adam to another TTY.\n");
   print("\033[0m\n");
 
+}
+
+void testing_help() {
+  print("\n\033[314m TESTING: (Comanda + synopsis)   SHIFT+TAB per fer zapping.\n\n");
+  print("\033[311m        eva \033[37m- fa fork, tanca el fd 1, fa una nova pantalla, i executa Adam.\n");
+  print("\033[311m        tty \033[37m- obre una nova pantalla per aquest proces.\n");
+  print("\033[311m      close \033[37m- tancar una pantalla.\n");
+  print("\033[311m  epilepsia \033[37m- s'obren, es fa focus, i es tanquen pantalles.\n");
+  print("\033[311m       test \033[37m- fa forks i prova les syscalls de la Entrega 1.\n");
+  print("\033[311m      walls \033[37m- un joc per testejar el read(). Control: W A S D\n");
+  
+  print("\n\033[311m EP!\033[37m Hi ha altres comandes! Escriu 'h' per help.\n\n");
 }
 
 void printstats() {
@@ -159,6 +166,34 @@ void test() {
   
 }
 
+void tty () {
+  char buff [256];
+  int fd = createScreen();
+  
+  // escriu a la pantalla inicial
+  print("Nova tty : File Descriptor = ");
+  itoa(fd, buff);
+  print(buff);
+  print(".\nPots tancar-la amb la comanda 'close'.\n");
+  print("Fes SHIFT + TAB per arribar-hi.\n");
+  
+  // escriu a la nova pantalla
+  strcpy(buff, "Pantalla creada amb 'tty' per PID=");
+  write(fd, buff, strlen(buff));
+  int my_pid = getpid();
+  itoa(my_pid, buff);
+  strcat(buff, "\n");
+  write(fd, buff, strlen(buff));
+}
+
+void close_tty (int fd) {
+  print("Indica el File Descriptor: ");
+  int ret = input_number();
+  ret = close(ret);
+  if (ret == 0) print ("Done! \n");
+  else perror();
+}
+
 void new_adam_tty() {
   char buff[32];
   int ret_f, ret_0, ret_1; //, ret_2;
@@ -207,8 +242,7 @@ void new_adam_tty() {
 }
 
 void epilepsia() {
-  char buff[32];
-  int ret_0, ret_1;
+  int ret_1;
   
   for (int k = 0; k < 5; k++) {
     ret_1 = createScreen();

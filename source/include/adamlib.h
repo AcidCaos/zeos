@@ -5,6 +5,7 @@
 // INPUT
 char readchar ();
 void input(char * in);
+int input_number();
 
 // OUTPUT
 void print (char * s);

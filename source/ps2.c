@@ -148,13 +148,13 @@ void ps2_mouse_routine_inner () {
    Button Left
   */
   
-  int y_overflow = (status >> 7) & 0x1;
-  int x_overflow = (status >> 6) & 0x1;
+  //int y_overflow = (status >> 7) & 0x1; // UNUSED
+  //int x_overflow = (status >> 6) & 0x1; // UNUSED
   
   int y_sign = (status >> 5) & 0x1;
   int x_sign = (status >> 4) & 0x1;
   
-  int always_one = (status >> 3) & 0x1;
+  //int always_one = (status >> 3) & 0x1; // UNUSED
   
   int button_middle = (status >> 2) & 0x1;
   int button_right = (status >> 1) & 0x1;

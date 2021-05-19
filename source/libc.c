@@ -102,6 +102,18 @@ void itoa(int a, char *b) {
   b[i]=0;
 }
 
+// String to integer
+int atoi (char* buff) {
+  int r = 0;
+  int i = 0;
+  while (buff[i] >= '0' && buff[i] <= '9') {
+    r = r * 10 + (int)(buff[i] - '0');
+    i++;
+  }
+  if (i == 0) return -1;
+  return r;
+}
+
 // String length
 int strlen(char *a) {
   int i;

@@ -10,7 +10,9 @@
 #include <types.h>
 #include <cyclic_buffer.h>
 #include <list.h>
-#include <sched.h>
+
+//#include <sched.h>
+struct task_struct;
 
 /*
     0 - black          8 - dark gray
@@ -51,23 +53,13 @@ struct ttys_table {
   struct tty ttys [MAX_TTYS];
   int focus;
   
-  //
-  //Word temp_buffer [5] [NUM_COLUMNS * NUM_ROWS];
-  /*Word temp_buffer [NUM_COLUMNS * NUM_ROWS];
-  Word temp_buffer_1 [NUM_COLUMNS * NUM_ROWS];
-  Word temp_buffer_2 [NUM_COLUMNS * NUM_ROWS];
-  Word temp_buffer_3 [NUM_COLUMNS * NUM_ROWS];
-  Word temp_buffer_4 [NUM_COLUMNS * NUM_ROWS];*/
-  //Word temp_buffer_5 [NUM_COLUMNS * NUM_ROWS];
-  
 };
 
 struct ttys_table ttys_table;
 
-
 void init_tty (struct tty* tty);
 void init_ttys_table();
-void init_task1_tty0 ( struct task_struct * t_s );
+void init_task1_tty0 (struct task_struct* t_s);
 
 struct tty* get_init_free_tty ();
 int increment_use_count_tty (struct tty* tty);
@@ -84,7 +76,7 @@ void set_tty_general_attr (struct tty* tty, int n);
 int show_next_tty ();
 int force_show_tty (int i);
 
-unsigned long tty_buffer_temp_logical_page (struct tty* tty, struct task_struct * t_s);
+unsigned long tty_buffer_temp_logical_page (struct tty* tty, struct task_struct* t_s);
 int undo_tty_buffer_temp_logical_page ();
 
 void show_console ();

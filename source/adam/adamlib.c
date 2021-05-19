@@ -30,9 +30,13 @@ void input(char* in) {
     buff[count] = ch;
     count++;
   }
-
 }
 
+int input_number() {
+  char buff[32];
+  input(buff);
+  return atoi(buff);
+}
 
 void print (char * s) {
 	int ret = write(1, s, strlen(s));
