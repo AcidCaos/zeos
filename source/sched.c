@@ -35,6 +35,21 @@ page_table_entry * get_PT (struct task_struct *t)
 	return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
+/*page_table_entry * get_PT (struct task_struct *t) {
+	
+	for (int k = 0; k < 10; k++)
+        	if ( t == & task[k].task ) {printk("task["); print_to_bochs('0' + k);}
+	
+        
+	printk("]\nget_PT a\n");
+	page_table_entry * pte = (unsigned long*)(t->dir_pages_baseAddr);
+        printk("get_PT b\n");
+	unsigned int aux = (unsigned int)(pte->bits.pbase_addr);
+	printk("get_PT c\n");
+	return (page_table_entry *)(aux << 12);
+	
+}*/
+
 
 int allocate_DIR(struct task_struct *t) 
 {
@@ -81,6 +96,10 @@ void init_idle (void) {
   union task_union* tu;
   struct task_struct* ts;
   ts = pop_task_struct( &freequeue );
+  
+  for (int k = 0; k < 10; k++)
+        if ( ts == & task[k].task ) {printk("init_idle task["); print_to_bochs('0' + k); printk("]\n");}
+  
   tu = (union task_union*) ts;
 
   // Assign PID = 0
@@ -114,6 +133,12 @@ void init_task1 (void) { //(Task1 is Adam: common antecessor of all processes)
   union task_union* tu;
   struct task_struct* ts;
   ts = pop_task_struct( &freequeue );
+
+
+  for (int k = 0; k < 10; k++)
+        if ( ts == & task[k].task ) {printk("init_task1 task["); print_to_bochs('0' + k); printk("]\n");}
+
+
   tu = (union task_union*) ts;
 
   // Assign PID = 1
@@ -121,14 +146,16 @@ void init_task1 (void) { //(Task1 is Adam: common antecessor of all processes)
   ts->quantum = INIT_QUANTUM;
   ts->state = ST_RUN;
   init_stats(&ts->stats);
+  
   init_task1_std_io(&ts->taula_canals);
-
+  
   // Inicialize dir_pages_baseAddr with a new directory
   allocate_DIR(ts);
-
+  
   // Inicialization of address space // Allocate User Code and Data physical pages
   set_user_pages(ts);
-
+  
+  
   // Set the new system stack pointer
   //  *  Make TSS point to the bottom system stack
   tss.esp0 = (unsigned long) & tu->stack[KERNEL_STACK_SIZE];
@@ -137,6 +164,10 @@ void init_task1 (void) { //(Task1 is Adam: common antecessor of all processes)
   
   // Set its page directory as the current page directory, setting register cr3
   set_cr3(ts->dir_pages_baseAddr);
+  //tty_buffer_temp_logical_page ( & ttys_table.ttys[0] , ts ); // TODO TODO TODO 
+
+  // TTY0 to task1
+  init_task1_tty0 (ts);
   
 }
 
@@ -150,14 +181,14 @@ void init_sched () {
 
   // Add all task structs from task[] to the Free Queue (all of them are available)
   for (int i = 0; i < NR_TASKS; i++) {
-    list_add ( &task[i].task.list_anchor, &freequeue );
+    list_add_tail ( &task[i].task.list_anchor, &freequeue );
   }
-
+  
   if (&task[NR_TASKS-1].task != list_head_to_task_struct(&task[NR_TASKS-1].task.list_anchor)) {
     // This should never happen
     printk ("Error: list_head_to_task_struct() is not working properly.\n");
   }
-
+  
 }
 
 

@@ -114,8 +114,6 @@ void ps2_mouse_init () {
   ps2_mouse_send_comand (0xF4); // Enable Data Reporting (In stream mode only)
   */
   
-  printk("* PS/2: Initialization Done.\n");
-  
   button_middle_pressed = 0;
   button_right_pressed = 0;
   button_left_pressed = 0;

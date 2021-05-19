@@ -143,13 +143,14 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   
-  show_console();
+  if (zeos_ticks > 1) show_console(); // Da fak
 
   update_topbar();
   
   show_mouse();
   
   scheduler();
+  
   return;
 }
 

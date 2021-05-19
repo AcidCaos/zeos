@@ -104,12 +104,12 @@ void printc_xy (Byte mx, Byte my, char c) {
 
 void printk (char *string) {
 
-  tty_printk (string); // Printk to tty device
-  
-  /*int i;
-  for (i = 0; string[i]; i++)
+  //tty_printk (string); // Printk to tty device
+  int i;
+  for (i = 0; string[i]; i++) {
+    print_to_bochs(string[i]);
     printc_attributes(string[i], 0xA, 0x0, 0); // green on black
-  */
+  }
 }
 
 void printk_color_xy (char *string, Byte fg_color, Byte bg_color, Byte mx, Byte my) {

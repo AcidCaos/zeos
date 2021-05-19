@@ -5,12 +5,14 @@
 #include <sched.h>
 #include <cyclic_buffer.h>
 #include <utils.h>
+#include <mm.h>
 
 //*********************
 // INICIALITZACIONS
 //*********************
 
 void init_tty (struct tty* tty) {
+  printk("init_tty\n");
   // General
   tty->pid_maker = current()->PID;
   
@@ -22,7 +24,11 @@ void init_tty (struct tty* tty) {
   tty->current_fg_color = 0xF; // White
   tty->current_bg_color = 0x0; // Black
   
-  // tty->p_buffer = memory_allocate_page();
+  // Allocate physical memory
+  tty->physical_page = alloc_frame();
+  
+  //tty_buffer_temp_logical_page (tty , &task[0].task); // TODO TODO TODO 
+  tty_buffer_temp_logical_page (tty , current() );
   
   for (int row = 0; row < NUM_ROWS; row++) {
     for (int col = 0; col < NUM_COLUMNS; col++) {
@@ -38,55 +44,70 @@ void init_tty (struct tty* tty) {
 
 void init_ttys_table() {
   
-  
-  // TODO 
+  /*
+  // TODO TODO TODO 
   for (int i = 0; i < 30; i++) {
     struct tty* tty = & ttys_table.ttys[i];
     //Word * temp_b = (& ttys_table.temp_buffer);// + 1 * i; //sizeof(Word) * NUM_COLUMNS * NUM_ROWS * i;
     Word * temp_b = (& ttys_table.temp_buffer) + i;
     tty->p_buffer = temp_b;
   }
-  // TODO n't
+  // TODO TODO TODO n't
+  */
+   
+  ttys_table.focus = -1;
   
   
-  // By default, there's only one tty
+  /*
+  NOW DONE at init_task1
   
-  ttys_table.focus = 0;
-  ttys_table.use_count[0] = 1;
-  
-  //struct tty* tty0 = & ttys_table.ttys[0];
   struct tty* tty0 = & ttys_table.ttys[0];
-  
-  /*for (int row = 0; row < NUM_ROWS; row++) {
-    for (int col = 0; col < NUM_COLUMNS; col++) {
-      tty0->p_buffer[row * NUM_COLUMNS + col] = 0x0F2E;
-    }
-  }*/
   
   // Force its creator to be task1
   tty0->pid_maker = 1;
   
   init_tty (tty0);
   
+  */
 }
 
-unsigned long * memory_allocate_page() {
+void init_task1_tty0 ( struct task_struct * t_s ) {
+  struct tty* tty0;
   
-  // page_table_entry* TP_current;
+  printk("init_task1_tty0\n");
   
+  tty0 = & ttys_table.ttys[0];
   
-  // TP_current = get_PT(current());
+  ttys_table.focus = 0;
+  ttys_table.use_count[0] = 1;
   
-  // Allocatar pagina física
+  tty0->pid_maker = 1;
   
-  // Buscar pagina logica d.usuari lliure
+  // REMAKE DE: init_tty (tty0);
   
-  // Associar pag log -> pag ph.
-  // set_ss_pag ( TP_current , 99, 99 );
+  // Output
+  tty0->x = 0;
+  tty0->y = topbar_enabled;
   
-  /*
-  return (unsigned long *) (& ttys_table.temp_buffer) + aux_aux * sizeof(Word) * NUM_COLUMNS * NUM_ROWS;
-  */
+  tty0->current_blinking = 0;
+  tty0->current_fg_color = 0xF; // White
+  tty0->current_bg_color = 0x0; // Black
+  
+  // Allocate physical memory
+  tty0->physical_page = alloc_frame();
+  
+  tty_buffer_temp_logical_page (tty0 , t_s); // TODO TODO TODO 
+  
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLUMNS; col++) {
+      tty0->p_buffer[row * NUM_COLUMNS + col] = 0x0F00; // 0x0F2E;
+    }
+  }
+  
+  // Input
+  INIT_LIST_HEAD ( & tty0->read_queue );
+  init_cyclic_buffer( & tty0->console_input );
+
 }
 
 struct tty* get_init_free_tty () {
@@ -191,6 +212,44 @@ int force_show_tty (int i) {
   return 0;
 }
 
+//*************************
+// ACCESS to a TTY BUFFER
+//*************************
+
+// printc -> escriure
+// update_screen -> llegir
+
+// TODO 
+int temp_logical_page = PAG_LOG_INIT_DATA + NUM_PAG_DATA + 30;
+
+
+unsigned long tty_buffer_temp_logical_page (struct tty* tty, struct task_struct * t_s) {
+  
+  int frame = tty->physical_page;
+  //printk("tty_buffer_temp_logical_page\n");
+  
+  page_table_entry* current_PT = get_PT( t_s );
+  
+  set_ss_pag(current_PT, temp_logical_page, frame);
+  
+  // Flush TLB
+  set_cr3(t_s->dir_pages_baseAddr); // TODO 
+  
+  //printk("END\n");
+  
+  tty->p_buffer = (Word*)(  ((unsigned long)(temp_logical_page)) << 12  );
+  return ((unsigned long)(temp_logical_page)) << 12;
+}
+
+
+int undo_tty_buffer_temp_logical_page () { // Not used
+  page_table_entry* current_PT = get_PT(current());
+  del_ss_pag(current_PT, temp_logical_page);
+  // Flush TLB
+  set_cr3(current()->dir_pages_baseAddr);
+  return 0;
+}
+
 //*********************
 // Show TTY to SCREEN
 //*********************
@@ -199,8 +258,24 @@ void show_console () { // Called in clock_routine . TODO : FPS
   int focus = ttys_table.focus;
   struct tty* tty_focus = & ttys_table.ttys[focus];
   
-  //Word* tty_buff = (Word *) & tty_focus->buffer; 
+  //printk(" ---> show_console\n");
+  
+  /*for (int k = 0; k < 10; k++) {
+    if ( current() == & task[k].task ) {
+      printk("show_console task[");
+      print_to_bochs('0' + k);
+      printk("]\n");
+      //if (k == 3) return; // TODO : da fak ?
+    }
+  }*/
+  
+  tty_buffer_temp_logical_page (tty_focus , current()); // TODO TODO TODO
+  // Flush TLB
+  // set_cr3(current()->dir_pages_baseAddr);
+  
   Word* tty_buff = tty_focus->p_buffer;
+  
+  
   Word* screen = (Word *) 0xb8000;
   
   for (int row = topbar_enabled; row < NUM_ROWS; row++) {
@@ -211,7 +286,7 @@ void show_console () { // Called in clock_routine . TODO : FPS
       
     }
   }
-  
+  //printk(" ---> END show_console\n");
 }
 
 //*********************
@@ -232,6 +307,8 @@ int find_int(char* str, int* ptr) {
 
 int sys_write_console (struct tty* tty, char* buffer, int size) {
   int i;
+  
+  tty_buffer_temp_logical_page (tty , current()); // TODO TODO TODO
   
   for (i=0; i<size; i++) {
   
@@ -350,7 +427,7 @@ void tty_printc_attributes (struct tty* tty, char c, int fg_color, int bg_color,
     Word blink_attr = (Word) (blink & 0x0001) << 7;
     Word attr_byte = (fg_attr | bg_attr | blink_attr) << 8;
     Word ch = (Word) (c & 0x00FF) | attr_byte;
-
+    
     tty->p_buffer[(y * NUM_COLUMNS + x)] = ch;
     if (++x >= NUM_COLUMNS) {
       x = 0;
@@ -370,7 +447,7 @@ void tty_printc (struct tty* tty, char c) {
   
 }
 
-void tty_printk (char* str) {
+void tty_printk (char* str) { // UNUSED
   int i;
   struct tty* tty = & ttys_table.ttys[0];
   //struct tty* tty = & ttys_table.ttys[ttys_table.focus];

@@ -74,19 +74,18 @@ void update_topbar() {
     printk_color_xy(buffer, fg_color, bg_color, 17, 0);
   }
   
-  // Print tty info
-  printk_color_xy(" (PID ", fg_color, bg_color, 30, 0); //44
-  itoa_k(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
-  strcat_k (buffer, "; ");
-  
-  // Print tty info
+  // Print tty number
   printk_color_xy("TTY ", fg_color, bg_color, 24, 0); //37
   itoa_k(ttys_table.focus, buffer);
   strcat_k (buffer, " ");
   printk_color_xy(buffer, fg_color, bg_color, 28, 0); //41
   
-  itoa_k(fps, aux);
+  // Print tty info
+  printk_color_xy(" (PID ", fg_color, bg_color, 30, 0); //44
+  itoa_k(ttys_table.ttys[ttys_table.focus].pid_maker, buffer); // maker's pid
   strcat_k (buffer, "; ");
+
+  itoa_k(fps, aux);
   strcat_k (buffer, aux);
   strcat_k (buffer, " FPS)");
   strcat_k (buffer, "       "); // Ensure erasing previous values

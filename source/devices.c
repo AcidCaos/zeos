@@ -16,9 +16,11 @@ void init_devices() {
   
   // ttys
   init_ttys_table();
+  printk("* Initialized TTYs table.\n");
 
   // PS/2 Mouse
   ps2_mouse_init ();
+  printk("* PS/2: Initialization Done.\n");
   
 }
 
