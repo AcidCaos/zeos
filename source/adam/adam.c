@@ -38,7 +38,7 @@ int execute(char * command) {
   else if (strequ(command, "ping")) print("pong\n");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
-  else if (strequ(command, "exit") || strequ(command, "quit")) exit(); //must_close = 1;
+  else if (strequ(command, "exit") || strequ(command, "quit")) /*exit(); */ must_close = 1;
   else if (strequ(command, "eva")) new_adam_tty();
   else if (strequ(command, "")) return 0;
   // Easter-eggs i altres...
@@ -190,6 +190,8 @@ void close_tty (int fd) {
   print("Indica el File Descriptor: ");
   int ret = input_number();
   ret = close(ret);
+  //if (ret == 0) print("Done!\n");
+  //else perror();
   if (ret < 0) perror();
 }
 

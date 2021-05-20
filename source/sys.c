@@ -41,6 +41,7 @@ int ret_from_fork() {
   return 0;
 }
 
+
 int sys_fork() {
 
   int PID=-1;
@@ -98,7 +99,14 @@ int sys_fork() {
   unsigned long offset = PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
   for (int i = 0; i < NUM_PAG_DATA; i++) {
     unsigned long new_frame = alloc_frame(); // alloc_frame(): Search free physical page. mark it as USED_FRAME.
-    if (new_frame < 0) return -ENOMEM; // TODO : deallocate frames. ENOMEM: Out of memory
+    if (new_frame < 0) {
+      for (int k = 0; k < i; k++) {
+        free_frame( get_frame(TP_fill, offset + k));
+        del_ss_pag(TP_fill, offset + k);
+      }
+      push_task_struct (fill_ts, & freequeue);
+      return -ENOMEM; // ENOMEM: Out of memory
+    }
     set_ss_pag(TP_fill, offset + i, new_frame); // Associates logical page of child with physical frame
   }
   
@@ -119,8 +127,13 @@ int sys_fork() {
     del_ss_pag(TP_pare, temp_offset + i); // Undo temp. mapping
   }
   
+  // EP : DISCREPANCIA  TODO   TODO   TODO   TODO 
+  
   // (f) set System Code and Data TP entries to child --------* System Code + Data (shared)
-  offset = (KERNEL_START >> 12); // Numero pag. lògica (i física) inici codi i dades kernel
+  
+  // The Great BUG
+  //offset = (KERNEL_START >> 12);
+  offset = 0; // Numero pag. lògica (i física) inici codi i dades kernel
   for (int i = 0; i < NUM_PAG_KERNEL; i++) {
     set_ss_pag(TP_fill, offset + i, get_frame(TP_pare, offset + i));
     //TP_fill[i + offset].entry = TP_pare[i + offset].entry;
@@ -150,13 +163,12 @@ int sys_fork() {
   // Això està malament calculat: (Surt 8fedc, hauria: ~1cfb8)
   fill_ts->kernel_esp = & (fill_tu->stack[fill_ebp_index - 1]); // Un més amunt!
   */
+  
   // (j) Map parent's ebp to child's stack
   unsigned long EBP_pare = asm_get_ebp(); // systemwrap.S
   int fill_ebp_index = (EBP_pare - (int)current()) / sizeof(int);
   // Això està ben calculat: (Surt: ~1cfb4)
   fill_ts->kernel_esp = (unsigned long) & (fill_tu->stack[fill_ebp_index - 1]);
-
-
   
   // (k) Prepare child for context switch
   fill_tu->stack[fill_ebp_index] = (unsigned long) & ret_from_fork;
@@ -170,6 +182,7 @@ int sys_fork() {
   
   return PID;
 }
+
 
 int sys_write(int fd, char* buffer, int size) {
 
@@ -196,7 +209,6 @@ int sys_write(int fd, char* buffer, int size) {
   return ret; // ret = num. of bytes written
 
 }
-
 
 int sys_get_stats(int pid, struct stats *s) {
   struct task_struct* t_s = NULL;

@@ -85,7 +85,7 @@ struct task_struct* pop_task_struct (struct list_head* queue) {
 // Push list_head to the READY queue
 void push_task_struct (struct task_struct* elem, struct list_head* queue) {
 
-  struct list_head * to_insert = & elem->list_anchor;
+  struct list_head * to_insert = & (elem->list_anchor);
   list_add_tail(to_insert, queue);
 
 }
