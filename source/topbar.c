@@ -14,6 +14,7 @@ char fg_color = 0xE; // yellow
 char bg_color = 0x1; // blue
 
 char last_key_pressed[32];
+
 int fps;
 
 char buffer[128];
@@ -35,6 +36,7 @@ int frame_counter;
 unsigned long long last_time;
 
 #define IPS 4000000
+#define CYCLESPERTICK 109000
 
 char buff[256];
 
@@ -42,18 +44,12 @@ void track_fps() {
   frame_counter++;
   unsigned long long now = get_ticks();
   
-  /*itoa_k(now, buff);
-  printk(buff);
-  printk("\n");*/
-
-  if (now - last_time >= IPS) {
-    
-    // printk("Second\n");
-    
+  if (now - last_time >= IPS / CYCLESPERTICK) {
     last_time = now;
     fps = frame_counter;
     frame_counter = 0;
   }
+  
 }
 
 void update_topbar() {

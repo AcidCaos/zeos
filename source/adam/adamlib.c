@@ -39,7 +39,7 @@ int input_number() {
 }
 
 void print (char * s) {
-	int ret = write(1, s, strlen(s));
+  int ret = write(1, s, strlen(s));
   if (ret < 0) perror();
 }
 

@@ -143,7 +143,7 @@ void setIdt() {
 void clock_routine() {
   zeos_ticks++;
   
-  if (zeos_ticks > 1) show_console(); // Da fak
+  if (zeos_ticks > 1) show_console(); // No show_console should be done before the first task_switch.
 
   update_topbar();
   
@@ -153,9 +153,6 @@ void clock_routine() {
   
   return;
 }
-
-
-// extern struct cyclic_buffer console_input; // devices.h
 
 
 void keyboard_routine() {

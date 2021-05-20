@@ -95,7 +95,7 @@ int sys_fork() {
   TP_fill = get_PT(fill_ts); // fill_ts->dir_pages_baseAddr;
   
   // (d) Allocate physical pages to map logic pages for User Data+Stack of child
-  unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;//PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
+  unsigned long offset = PAG_LOG_INIT_DATA; // Numero pag. lògica inici de data+stack usuari
   for (int i = 0; i < NUM_PAG_DATA; i++) {
     unsigned long new_frame = alloc_frame(); // alloc_frame(): Search free physical page. mark it as USED_FRAME.
     if (new_frame < 0) return -ENOMEM; // TODO : deallocate frames. ENOMEM: Out of memory
@@ -283,6 +283,7 @@ int sys_close (int fd) {
 }
 
 void sys_exit() {
+  printk("sys_exit\n");
   // (z) Close all opened files (tty's really)
   struct taula_canals* tc = & current()->taula_canals;
   for (int i = 0; i < MAX_CHANNELS; i++) {
@@ -290,7 +291,7 @@ void sys_exit() {
   }
   
   // (a) Free the physical frames (for Data+Stack)
-  unsigned long offset = NUM_PAG_KERNEL + NUM_PAG_CODE;
+  unsigned long offset = PAG_LOG_INIT_DATA; // NUM_PAG_KERNEL + NUM_PAG_CODE;
   page_table_entry* TP_proces = get_PT(current());
   for (int i = 0; i < NUM_PAG_DATA; i++) {
     free_frame(get_frame(TP_proces, offset + i));

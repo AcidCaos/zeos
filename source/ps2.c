@@ -191,7 +191,8 @@ void ps2_mouse_routine_inner () {
 
 
 void show_mouse () {
-  printk_color_xy ("o", 0xF, 0x0, (Byte) mouse.x, (Byte) mouse.y);
+  if (mouse.x != 0 || mouse.y != 0)
+    printk_color_xy ("o", 0xF, 0x0, (Byte) mouse.x, (Byte) mouse.y);
 }
 
 
