@@ -300,37 +300,41 @@ void print_menu(struct menu * m) {
   width_offset = NUM_COLUMNS/2 - width/2 - 1;
   
   // Print Background and Options
-  // Go to line
-  strcpy (buffer, "");
-  for (int k = 0; k < height_offset; k++) strcat (buffer, "\n");
-  print(buffer);
   for (int i = 0; i < height; i++) {
-    // Go to column
-    strcpy (buffer, "");
-    for (int k = 0; k < width_offset; k++) strcat (buffer, " ");
+    // Go to x,y pos
+    strcpy (buffer, "\033[");
+    itoa(width_offset, aux);
+    strcat (buffer, aux);
+    strcat (buffer, ";");
+    itoa(height_offset + i, aux);
+    strcat (buffer, aux);
+    strcat (buffer, "H");
     print(buffer);
+    
+    // First line is title
     if (i == 0) {
       print("\033[41m  ");
-      // Print first row: title
       print(m->title);
       for (int j = 0; j < width - strlen(m->title) - 2; j++) print (" ");
       print("\033[0m \n");
       continue;
     }
+    
     // Print menu options
-    if ( i - 1 >= 0 && i - 1 < m->n_options) {
-      if (m->selected == i - 1) print("\033[44m\033[315m  ");
-      else print("\033[47m\033[31m  ");
-      print (m->option[i - 1]);
-      for (int j = 0; j < width - strlen(m->option[i - 1]) - 2; j++) print (" ");
-    } else for (int j = 0; j < width; j++) {
-      print (" ");
+    int top_margin = 2;
+    int left_margin = 2;
+    
+    if (m->selected == i - top_margin) strcpy (buffer, "\033[44m\033[315m");
+    else strcpy (buffer, "\033[47m\033[31m");
+    for (int k = 0; k < left_margin; k++) strcat (buffer, " ");
+    if ( i - top_margin >= 0 && i - top_margin < m->n_options) {
+      strcat(buffer, m->option[i - top_margin]);
+      for (int j = 0; j < width - strlen(m->option[i - top_margin]) - left_margin; j++) strcat (buffer, " ");
+    } else for (int j = 0; j < width - left_margin; j++) {
+      strcat (buffer, " ");
     }
-    print("\033[0m \n");
+    print(buffer);
   }
-  
-  // Read Arrows movement OR enter
-  
 }
 
 void menu() {
@@ -349,6 +353,8 @@ void menu() {
   
   while (1) {
     print_menu (& menu);
+    print("\033[0;24H");
+    
     input = readchar();
     if (input == '2' || input == '6') menu.selected = (menu.selected+1) % (menu.n_options);
     if (input == '4' || input == '8') menu.selected = (menu.selected+menu.n_options-1) % (menu.n_options);

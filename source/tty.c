@@ -131,7 +131,7 @@ int decrement_use_count_tty (struct tty* tty) {
 
 void set_tty_cursor (struct tty* tty, int x, int y) {
   
-  if (x < topbar_enabled || x >= NUM_ROWS || y < 0 || x >= NUM_COLUMNS)  return;
+  if (x < 0 || x >= NUM_COLUMNS || y < topbar_enabled || y >= NUM_ROWS)  return;
   
   tty->x = x;
   tty->y = y;
