@@ -127,8 +127,6 @@ int sys_fork() {
     del_ss_pag(TP_pare, temp_offset + i); // Undo temp. mapping
   }
   
-  // EP : DISCREPANCIA  TODO   TODO   TODO   TODO 
-  
   // (f) set System Code and Data TP entries to child --------* System Code + Data (shared)
   
   // The Great BUG

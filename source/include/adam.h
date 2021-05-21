@@ -14,6 +14,7 @@ void new_adam_tty();
 void close_tty ();
 void tty();
 void epilepsia();
+void menu();
 
 // Walls
 void walls();

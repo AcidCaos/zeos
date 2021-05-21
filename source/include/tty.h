@@ -79,6 +79,7 @@ int force_show_tty (int i);
 unsigned long tty_buffer_temp_logical_page (struct tty* tty, struct task_struct* t_s);
 int undo_tty_buffer_temp_logical_page ();
 
+void clear_tty (struct tty* tty);
 void show_console ();
 
 void tty_printc (struct tty* tty, char c);

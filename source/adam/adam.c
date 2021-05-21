@@ -34,8 +34,9 @@ int execute(char * command) {
   
   // Comandes Documentades
   if      (strequ(command, "h") || strequ(command, "help")) help();
-  if      (strequ(command, "t") || strequ(command, "testing")) testing_help();
+  else if (strequ(command, "t") || strequ(command, "testing")) testing_help();
   else if (strequ(command, "ping")) print("pong\n");
+  else if (strequ(command, "clear")) print("\033[1m");
   else if (strequ(command, "test")) test();
   else if (strequ(command, "stats")) printstats();
   else if (strequ(command, "exit") || strequ(command, "quit")) /*exit(); */ must_close = 1;
@@ -46,6 +47,7 @@ int execute(char * command) {
   else if (strequ(command, "walls")) walls();
   else if (strequ(command, "bye")) print("Sorry, this is not ftp... Try with 'quit'.\n");
   else if (strequ(command, "hola")) print("parles sol?\n");
+  else if (strequ(command, "menu")) menu();
   // Testing
   else if (strequ(command, "tty")) tty();
   else if (strequ(command, "close")) close_tty();
@@ -63,6 +65,8 @@ void help() {
   print("\033[312m       h \033[0m-\033[37m Shows this help message.\n");
   print("\033[312m       t \033[0m-\033[37m Shows testing options.\n");
   print("\033[312m    ping \033[0m-\033[37m Answers 'pong'.\n");
+  print("\033[312m   clear \033[0m-\033[37m Clears the screen.\n");
+  print("\033[312m    menu \033[0m-\033[37m Tests ANSI escape codes.\n");
   print("\033[312m    test \033[0m-\033[37m Executes a series of tests for all syscalls.\n");
   print("\033[312m   stats \033[0m-\033[37m Shows Adam process stats.\n");
   print("\033[312m   walls \033[0m-\033[37m A little game. (Don't touch the walls!)\n");
@@ -81,7 +85,8 @@ void testing_help() {
   print("\033[311m       test \033[37m- fa forks i prova les syscalls de la Entrega 1.\n");
   print("\033[311m      walls \033[37m- un joc per testejar el read(). Control: W A S D\n");
   
-  print("\n\033[311m EP!\033[37m Hi ha altres comandes! Escriu 'h' per help.\n\n");
+  print("\033[311m\n        \033[41m      '' Solo tu puedes decidir que hacer                   \033[0m\n");
+  print("\033[311m        \033[41m     con las herramientas que se te han dado'' - Gandalf.   \033[0m\n\n");
 }
 
 void printstats() {
@@ -162,7 +167,6 @@ void test() {
   if (ret == 0 || ret2 == 0) exit();
   print("\n## -> TEST 6 : exit() all except Adam.\n");
   print("Only ADAM sais this. Others are dead.\n");
-
   
 }
 
@@ -256,6 +260,107 @@ void epilepsia() {
   
   setFocus(1);
   
+}
+
+#define MAX_NUM_OPTIONS 30
+#define MAX_STRING_SIZE 50
+
+struct menu {
+  char * title;
+  int n_options;
+  char * option[MAX_NUM_OPTIONS];
+  int selected;
+};
+
+#define NUM_COLUMNS 80
+#define NUM_ROWS    25
+
+void print_menu(struct menu * m) {
+  char buffer[256];
+  char aux[32];
+  
+  int width, height;
+  int height_offset, width_offset;
+  
+  // Clear screen
+  print("\033[1m");
+  
+  // Calculate needed dimensions
+  int title_len = strlen(m->title);
+  if (width < title_len) width = title_len;
+  for (int i = 0; i < m->n_options; i++) {
+    int opt_len = strlen(m->option[i]);
+    if (width < opt_len) width = opt_len;
+  }
+  width = width + 4;
+  height = m->n_options + 4;
+  
+  // Calculate offset
+  height_offset = NUM_ROWS/2 - height/2;
+  width_offset = NUM_COLUMNS/2 - width/2 - 1;
+  
+  // Print Background and Options
+  // Go to line
+  strcpy (buffer, "");
+  for (int k = 0; k < height_offset; k++) strcat (buffer, "\n");
+  print(buffer);
+  for (int i = 0; i < height; i++) {
+    // Go to column
+    strcpy (buffer, "");
+    for (int k = 0; k < width_offset; k++) strcat (buffer, " ");
+    print(buffer);
+    if (i == 0) {
+      print("\033[41m  ");
+      // Print first row: title
+      print(m->title);
+      for (int j = 0; j < width - strlen(m->title) - 2; j++) print (" ");
+      print("\033[0m \n");
+      continue;
+    }
+    // Print menu options
+    if ( i - 1 >= 0 && i - 1 < m->n_options) {
+      if (m->selected == i - 1) print("\033[44m\033[315m  ");
+      else print("\033[47m\033[31m  ");
+      print (m->option[i - 1]);
+      for (int j = 0; j < width - strlen(m->option[i - 1]) - 2; j++) print (" ");
+    } else for (int j = 0; j < width; j++) {
+      print (" ");
+    }
+    print("\033[0m \n");
+  }
+  
+  // Read Arrows movement OR enter
+  
+}
+
+void menu() {
+  char buffer[32];
+  struct menu menu;
+  char input;
+  
+  menu.title = "Menu Title";
+  menu.n_options = 3;
+  
+  menu.option[0] = "Option 0";
+  menu.option[1] = "This is option 1";
+  menu.option[2] = "Option 2 ...";
+  
+  menu.selected = 0;
+  
+  while (1) {
+    print_menu (& menu);
+    input = readchar();
+    if (input == '2' || input == '6') menu.selected = (menu.selected+1) % (menu.n_options);
+    if (input == '4' || input == '8') menu.selected = (menu.selected+menu.n_options-1) % (menu.n_options);
+    if (input == '\n') {
+      print("\033[1m");
+      print("\nOption selected is ");
+      itoa(menu.selected, buffer);
+      print(buffer);
+      print(".\n");
+      break;
+    }
+  }
 }
 
 

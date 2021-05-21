@@ -144,7 +144,7 @@ void clock_routine() {
   zeos_ticks++;
   
   if (zeos_ticks > 1) show_console(); // No show_console should be done before the first task_switch.
-
+  
   update_topbar();
   
   show_mouse();

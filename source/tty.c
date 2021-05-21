@@ -164,6 +164,8 @@ void set_tty_general_attr (struct tty* tty, int n) {
     tty->current_bg_color = 0x0; // Black
   }
   
+  else if (n == 1) clear_tty (tty);
+  
   else if (n == 5) tty->current_blinking = 1;
   
   else if (n == 9) tty->p_buffer[(tty->y * NUM_COLUMNS + tty->x)] = 0x00;
@@ -264,6 +266,24 @@ void show_console () { // Called in clock_routine . TODO : FPS
 //*********************
 //  WRITE TO TTY
 //*********************
+
+void clear_tty (struct tty* tty) {
+  
+  tty->x = 0;
+  tty->y = topbar_enabled;
+  
+  tty->current_blinking = 0;
+  tty->current_fg_color = 0xF;
+  tty->current_bg_color = 0x0;
+  
+  tty_buffer_temp_logical_page (tty , current() );
+  
+  for (int row = 0; row < NUM_ROWS; row++) {
+    for (int col = 0; col < NUM_COLUMNS; col++) {
+      tty->p_buffer[row * NUM_COLUMNS + col] = 0x0F00;
+    }
+  }
+}
 
 int find_int(char* str, int* ptr) {
   int r = 0;
