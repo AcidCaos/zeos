@@ -15,3 +15,5 @@ debugger_log: -
 port_e9_hack: enabled=1
 
 # clock: sync=realtime
+
+romimage: file=$BXSHARE/BIOS-bochs-legacy
